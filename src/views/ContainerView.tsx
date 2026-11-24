@@ -1,0 +1,468 @@
+import React, { useEffect, useState } from 'react'
+import type { MenuProps, TabsProps } from 'antd'
+import { Button, ConfigProvider, Dropdown, Flex, Splitter, Tabs, theme } from 'antd'
+import { Notice, Platform } from 'obsidian'
+import { CalendarTab, DashboardTab, KanbanTab, McpServerManager, mcpService, useEventBus } from '@ljcoder/smart-sheet'
+import { createStyles } from 'antd-style'
+import { randomString } from '../utils/uuid'
+import { TabType } from '../services/type'
+import { t } from '../lang/helpers'
+import { log } from '../utils/log'
+import { useEditorContext } from '../context/editorContext'
+import { useUniver } from '../context/UniverContext'
+import { useSheetStore } from '../context/SheetStoreProvider'
+import { TAB_DEFAULT_ACTION, TAB_RENAME_ACTION, VIEW_ADD_ACTION, VIEW_CONFIG_ADD_ACTION, VIEW_REMOVE_ACTION } from '../services/reduce'
+import { SheetTab } from './tabs/SheetTab'
+import { RenameModal } from './components/RenameModal'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
+
+const useStyle = createStyles(({ prefixCls, css }) => ({
+  linearGradientButton: css`
+    &.${prefixCls}-btn-primary:not([disabled]):not(.${prefixCls}-btn-dangerous) {
+      > span {
+        position: relative;
+        color: #fff;
+      }
+
+      &::before {
+        content: '';
+        background: linear-gradient(135deg, #6253e1, #04befe);
+        position: absolute;
+        inset: -1px;
+        opacity: 1;
+        transition: all 0.3s;
+        border-radius: inherit;
+      }
+
+      &:hover::before {
+        opacity: 0;
+      }
+    }
+  `,
+}))
+
+export const ContainerView = function ContainerView() {
+  const { state, dispatch } = useSheetStore()
+  const { univerApi } = useUniver()
+  const { editor } = useEditorContext()
+  const { plugin } = editor
+  const [algorithm, setAlgorithm] = useState([]) // 设置主题
+  const [triggerSource, setTriggerSource] = useState<string | null>(null) // 记录是点击哪个 tab 触发的下拉菜单
+  const [renameModalVisible, setRenameModalVisible] = useState(false) // 重命名
+  const [renameModalName, setRenameModalName] = useState('') // 重命名的名称
+  const [showMCP, setShowMCP] = useState(false)
+  const [, setMcpRunning] = useState(false)
+  const { styles } = useStyle()
+
+  const tabs = state.tabs.tabs || []
+  const [activeKey, setActiveKey] = useState('sheet')
+
+  const switchTab = () => {
+    if (state.tabs.defaultActiveKey !== 'sheet') {
+      setActiveKey(state.tabs.defaultActiveKey)
+    }
+  }
+  const items: TabsProps['items'] = tabs.map((tab) => {
+    if (tab.type === TabType.SHEET) {
+      return {
+        key: tab.key,
+        label: tab.label,
+        children: (
+          <SheetTab
+            key={tab.key}
+            switchTab={switchTab}
+          />
+        ),
+        forceRender: false,
+      }
+    }
+    else if (tab.type === TabType.KANBAN) {
+      return {
+        key: tab.key,
+        label: tab.label,
+        children: (
+          <KanbanTab
+            key={tab.key}
+            id={tab.key}
+            univerApi={univerApi}
+            config={state.views?.[tab.key] ?? {}}
+            workbook={state.sheet}
+            dispatch={dispatch}
+          />
+        ),
+        forceRender: false,
+      }
+    }
+    else if (tab.type === TabType.CALENDAR) {
+      return {
+        key: tab.key,
+        label: tab.label,
+        children: (
+          <CalendarTab
+            key={tab.key}
+            id={tab.key}
+            univerApi={univerApi}
+            config={state.views?.[tab.key] ?? {}}
+            workbook={state.sheet}
+            dispatch={dispatch}
+          />
+        ),
+        forceRender: false,
+      }
+    }
+    else if (tab.type === TabType.DASHBOARD) {
+      return {
+        key: tab.key,
+        label: tab.label,
+        children: (
+          <DashboardTab
+            key={tab.key}
+            id={tab.key}
+            univerApi={univerApi}
+            config={state.views?.[tab.key] ?? {}}
+            workbook={state.sheet}
+            dispatch={dispatch}
+          />
+        ),
+        forceRender: false,
+      }
+    }
+    else {
+      return {
+        key: tab.key,
+        label: tab.label,
+        children: null,
+        forceRender: true,
+      }
+    }
+  })
+
+  log('[ContainerView]', 'items', items)
+  useEventBus('fileRenamed', (payload) => {
+    if (!payload) {
+      return // 防止 undefined
+    }
+    const { oldPath, newPath } = payload
+    const activeWorkbook = univerApi?.getActiveWorkbook()
+    if (activeWorkbook && activeWorkbook.getName() === oldPath) {
+      activeWorkbook.setName(newPath)
+    }
+  })
+
+  useEffect(() => {
+    if (!plugin) {
+      return
+    }
+    const darkModal = plugin.settings.darkModal
+    if (darkModal === 'dark') {
+      setAlgorithm([theme.darkAlgorithm])
+    }
+    else {
+      setAlgorithm([])
+    }
+  }, [plugin])
+
+  useEffect(() => {
+    if (univerApi) {
+      mcpService.setUniverApi(univerApi)
+    }
+  }, [univerApi])
+
+  const tabMenu: MenuProps['items'] = [
+    {
+      label: t('TAB_MENU_DEFAULT'),
+      key: 'default',
+    },
+    {
+      label: t('TAB_MENU_RENAME'),
+      key: 'rename',
+    },
+    {
+      label: t('TAB_MENU_DELETE'),
+      key: 'delete',
+    },
+  ]
+
+  const tabDropdownClick: MenuProps['onClick'] = (item) => {
+    const { key } = item
+    if (key === 'delete') {
+      if (!triggerSource || triggerSource === 'sheet') {
+        new Notice(t('CANNOT_DELETE_SHEET'))
+        return
+      }
+      dispatch({ type: VIEW_REMOVE_ACTION, key: triggerSource })
+      if (triggerSource == activeKey) {
+        setActiveKey('sheet')
+      }
+      setTriggerSource(null)
+    }
+    if (key === 'default') {
+      dispatch({ type: TAB_DEFAULT_ACTION, key: triggerSource || 'sheet' })
+      setTriggerSource(null)
+    }
+    if (key === 'rename') {
+      if (triggerSource) {
+        const tab = tabs.find(t => t.key === triggerSource)
+        if (tab) {
+          setRenameModalName(tab.label)
+          dispatch({ type: TAB_RENAME_ACTION, key: triggerSource, payload: tab.label })
+        }
+      }
+      setRenameModalVisible(true)
+    }
+  }
+
+  const createKanbanConfig = () => {
+    if (!univerApi) {
+      return {}
+    }
+    const sheet = univerApi.getActiveWorkbook()?.getActiveSheet()
+    if (sheet === null || sheet === undefined) {
+      return {}
+    }
+    return {
+      sheetId: sheet.getSheetId(),
+      groupColumn: '0',
+      hiddenColumns: [],
+      order: [],
+    }
+  }
+
+  const createCalendarConfig = () => {
+    if (!univerApi) {
+      return {}
+    }
+    const sheet = univerApi.getActiveWorkbook()?.getActiveSheet()
+    if (sheet === null || sheet === undefined) {
+      return {}
+    }
+    return {
+      sheetId: sheet.getSheetId(),
+      title: {
+        colIndex: 0,
+        title: 'A',
+      },
+      dateStart: {
+        colIndex: 1,
+        title: 'B',
+      },
+      dateEnd: {
+        colIndex: 2,
+        title: 'C',
+      },
+    }
+  }
+
+  // 添加标签页
+  const addTabMenu: MenuProps = {
+    items: [
+      {
+        label: t('TAB_TYPE_KANBAN'),
+        key: TabType.KANBAN,
+      },
+      {
+        label: t('TAB_TYPE_CALENDAR'),
+        key: TabType.CALENDAR,
+      },
+      {
+        label: t('TAB_TYPE_DASHBOARD'),
+        key: TabType.DASHBOARD,
+      },
+      // {
+      //   label: t('TAB_TYPE_GROUP'),
+      //   key: 'group',
+      // },
+      // {
+      //   label: t('TAB_TYPE_BI'),
+      //   key: 'bi',
+      // },
+      // {
+      //   label: t('TAB_TYPE_PIVOT'),
+      //   key: 'pivot',
+      // },
+    ],
+    onClick: (item) => {
+      // 菜单项的 key 来自上面的 TabType 枚举，这里统一收敛为枚举类型，
+      // 避免 string 与 enum 直接比较（typescript-eslint 会判为不安全的枚举比较）。
+      const key = item.key as TabType
+      const id = randomString(6)
+      dispatch({
+        type: VIEW_ADD_ACTION,
+        key: id,
+        payload: {
+          key: id,
+          type: key,
+          label: t(`TAB_TYPE_${key.toUpperCase()}`),
+        },
+      })
+      if (key === TabType.KANBAN) {
+        const kanbanData = createKanbanConfig()
+        dispatch({
+          type: VIEW_CONFIG_ADD_ACTION,
+          key: id,
+          payload: kanbanData,
+        })
+      }
+      if (key === TabType.CALENDAR) {
+        const calendarData = createCalendarConfig()
+        dispatch({
+          type: VIEW_CONFIG_ADD_ACTION,
+          key: id,
+          payload: calendarData,
+        })
+      }
+      if (key === TabType.DASHBOARD) {
+        dispatch({
+          type: VIEW_CONFIG_ADD_ACTION,
+          key: id,
+          payload: { widgets: [], layoutVersion: 0 },
+        })
+      }
+    },
+  }
+
+  // 帮助菜单
+  const helpTabMenu: MenuProps = {
+    items: [
+      {
+        label: t('HELP_MENU_DOCS'),
+        key: 'docs',
+        onClick: () => {
+          window.open('https://docs.ljcoder.com/', '_blank')
+        },
+      },
+      {
+        label: t('HELP_MENU_TUTORIALS'),
+        key: 'tutorials',
+        onClick: () => {
+          window.open('https://www.youtube.com/@obsidian-sheet-plus/playlists', '_blank')
+        },
+      },
+    ],
+  }
+
+  // 自定义 TabBar 渲染函数
+  const renderTabBar = (props: Record<string, unknown>, DefaultTabBar: React.ComponentType) => {
+    return (
+      <DefaultTabBar
+        {...props}
+        // 添加自定义的 tabBar 样式类名
+        className="lj-tab-bar"
+      >
+        { (node: Record<string, unknown>) => {
+          return (
+            <div className="lj-tab-bar-item">
+              <Dropdown
+                menu={{
+                  items: tabMenu,
+                  onClick: tabDropdownClick,
+                }}
+                trigger={['contextMenu']}
+                onOpenChange={
+                  (open) => {
+                    if (open) {
+                      setTriggerSource(node.key)
+                    }
+                  }
+                }
+              >
+                <Button
+                  color="blue"
+                  variant={activeKey === node.key ? 'solid' : 'outlined'}
+                  onClick={() => {
+                    setActiveKey(node.key)
+                  }}
+                >
+                  {state.tabs.defaultActiveKey === node.key ? <span>★</span> : null}
+                  {tabs.find(tab => tab.key === node.key)?.label || ''}
+                </Button>
+              </Dropdown>
+            </div>
+          )
+        }}
+      </DefaultTabBar>
+    )
+  }
+
+  return (
+    <AppErrorBoundary>
+      <div className="lj-content-view" data-theme={plugin.settings.darkModal === 'dark' ? 'sheet-plus-dark' : ''}>
+        <ConfigProvider
+          theme={{
+            algorithm,
+            components: {
+              Spin: {
+                contentHeight: '100%',
+              },
+              Tabs: {
+                horizontalMargin: '0',
+              },
+            },
+          }}
+        >
+          <Splitter>
+            <Splitter.Panel>
+              <Tabs
+                destroyOnHidden={false}
+                className="full-height-tabs"
+                size="small"
+                type="card"
+                items={items}
+                activeKey={activeKey}
+                renderTabBar={renderTabBar}
+                tabBarExtraContent={{
+                  right: (
+                    <Flex gap="small">
+                      <Dropdown menu={addTabMenu} trigger={['click']}>
+                        <Button color="default" variant="outlined">+</Button>
+                      </Dropdown>
+                      <Dropdown menu={helpTabMenu} trigger={['hover']}>
+                        <Button>?</Button>
+                      </Dropdown>
+
+                      {!Platform.isMobileApp && (
+                        <Button
+                          type="primary"
+                          className={styles.linearGradientButton}
+                          onClick={
+                            () => {
+                              setShowMCP(v => !v)
+                            }
+                          }
+                        >
+                          REST API
+                        </Button>
+                      )}
+                    </Flex>
+                  ),
+                }}
+              />
+            </Splitter.Panel>
+
+            { showMCP && (
+              <Splitter.Panel defaultSize="30%">
+                <McpServerManager
+                  onClose={() => setShowMCP(false)}
+                  onStatusChange={running => setMcpRunning(running)}
+                />
+              </Splitter.Panel>
+            )}
+          </Splitter>
+          <RenameModal
+            visible={renameModalVisible}
+            name={renameModalName}
+            onCancel={() => setRenameModalVisible(false)}
+            onOk={(name) => {
+              setRenameModalVisible(false)
+              dispatch({
+                type: TAB_RENAME_ACTION,
+                key: triggerSource,
+                payload: name,
+              })
+            }}
+          />
+        </ConfigProvider>
+      </div>
+    </AppErrorBoundary>
+  )
+}

@@ -1,0 +1,396 @@
+import '@ljcoder/sheets-outgoing-link-ui/lib/style.css'
+
+import { IAuthzIoService, LocaleType, LogLevel, Univer, UserManagerService } from '@univerjs/core'
+import { defaultTheme } from '@univerjs/themes'
+
+import { UniverDocsPlugin } from '@univerjs/docs'
+import { UniverDocsUIPlugin } from '@univerjs/docs-ui'
+
+import { ICanvasColorService, UniverRenderEnginePlugin } from '@univerjs/engine-render'
+import { UniverSheetsPlugin } from '@univerjs/sheets'
+
+import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula'
+import { CalculationMode, UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula'
+import { UniverSheetsFormulaUIPlugin } from '@univerjs/sheets-formula-ui'
+
+import { UniverSheetsNumfmtPlugin } from '@univerjs/sheets-numfmt'
+import { UniverSheetsNumfmtUIPlugin } from '@univerjs/sheets-numfmt-ui'
+
+import type { IUniverUIConfig } from '@univerjs/ui'
+
+import { UniverFindReplacePlugin } from '@univerjs/find-replace'
+
+import { UniverDataValidationPlugin } from '@univerjs/data-validation'
+import { UniverSheetsDataValidationPlugin } from '@univerjs/sheets-data-validation'
+
+import { UniverDocsDrawingPlugin } from '@univerjs/docs-drawing'
+import { UniverDrawingPlugin } from '@univerjs/drawing'
+import { UniverDrawingUIPlugin } from '@univerjs/drawing-ui'
+import { UniverSheetsDrawingPlugin } from '@univerjs/sheets-drawing'
+
+import { UniverSheetsFilterPlugin } from '@univerjs/sheets-filter'
+import { UniverThreadCommentPlugin } from '@univerjs/thread-comment'
+import { UniverThreadCommentUIPlugin } from '@univerjs/thread-comment-ui'
+import { UniverSheetsThreadCommentPlugin } from '@univerjs/sheets-thread-comment'
+import { UniverSheetsThreadCommentUIPlugin } from '@univerjs/sheets-thread-comment-ui'
+
+import { UniverSheetsSortPlugin } from '@univerjs/sheets-sort'
+
+import { UniverSheetsConditionalFormattingPlugin } from '@univerjs/sheets-conditional-formatting'
+
+import { UniverMobileUIPlugin, UniverUIPlugin } from '@univerjs/ui'
+
+import { AddRangeProtectionFromToolbarCommand, ChangeSheetProtectionFromSheetBarCommand, UniverSheetsMobileUIPlugin, UniverSheetsUIPlugin, ViewSheetPermissionFromContextMenuCommand, ViewSheetPermissionFromSheetBarCommand } from '@univerjs/sheets-ui'
+
+import { UniverSheetsHyperLinkPlugin } from '@univerjs/sheets-hyper-link'
+
+import { UniverSheetsConditionalFormattingMobileUIPlugin, UniverSheetsConditionalFormattingUIPlugin } from '@univerjs/sheets-conditional-formatting-ui'
+import { UniverSheetsDataValidationMobileUIPlugin, UniverSheetsDataValidationUIPlugin } from '@univerjs/sheets-data-validation-ui'
+import { UniverSheetsFilterMobileUIPlugin, UniverSheetsFilterUIPlugin } from '@univerjs/sheets-filter-ui'
+
+import { Platform } from 'obsidian'
+
+import '@univerjs/sheets/facade'
+import '@univerjs/ui/facade'
+import '@univerjs/docs-ui/facade'
+import '@univerjs/sheets-ui/facade'
+import '@univerjs/sheets-data-validation/facade'
+import '@univerjs/engine-formula/facade'
+import '@univerjs/sheets-filter/facade'
+import '@univerjs/sheets-formula/facade'
+import '@univerjs/sheets-numfmt/facade'
+import '@univerjs/sheets-hyper-link-ui/facade'
+import '@univerjs/sheets-thread-comment/facade'
+import '@univerjs/sheets-table/facade'
+import '@univerjs/sheets-note/facade'
+import '@univerjs/sheets-conditional-formatting/facade'
+import '@univerjs/sheets-drawing/facade'
+import '@univerjs/sheets-drawing-ui/facade'
+
+import { UniverSheetsTablePlugin } from '@univerjs/sheets-table'
+import { UniverSheetsTableUIPlugin } from '@univerjs/sheets-table-ui'
+import { UniverSheetsNotePlugin } from '@univerjs/sheets-note'
+import { UniverSheetsNoteUIPlugin } from '@univerjs/sheets-note-ui'
+
+import { UniverSheetsFindReplacePlugin } from '@univerjs/sheets-find-replace'
+import { UniverSheetsDrawingUIPlugin } from '@univerjs/sheets-drawing-ui'
+import { UniverSheetsHyperLinkUIPlugin } from '@univerjs/sheets-hyper-link-ui'
+import { UniverSheetsEmbedLinkUIPlugin } from '@ljcoder/embed-link-ui'
+import { UniverSheetsSortUIPlugin } from '@univerjs/sheets-sort-ui'
+import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair-highlight'
+import { UniverChartPlugin } from '@ljcoder/charts'
+import { UniverSheetsImportExportPlugin } from '@ljcoder/import-export'
+import { UniverSheetsOutgoingLinkUIPlugin } from '@ljcoder/sheets-outgoing-link-ui'
+import { FUniver } from '@univerjs/core/facade'
+import { log } from '@ljcoder/smart-sheet/src/utils/log'
+import { SavePlugin } from '@ljcoder/save'
+import { UniverLocalImagePlugin } from '@ljcoder/local-image'
+import { enUS, faIR, frFR, getLanguage, jaJP, ruRU, viVN, zhCN, zhTW } from '../../lang/locale'
+import { type FontInfo, buildFontConfigs } from '../../services/fontManager'
+import { LJAuthzService } from './mockUserService'
+import { mockUser } from './customMentionDataService'
+
+export function createUniver(
+  availableFonts: FontInfo[],
+  option: IUniverUIConfig,
+  container: string | HTMLElement,
+  mobileRenderMode: string,
+  darkMode: boolean,
+  isEmbed: boolean = false,
+  direction: string = 'ltr',
+) {
+  const univer = new Univer({
+    theme: defaultTheme,
+    darkMode,
+    locale: getLanguage(),
+    logLevel: import.meta.env.MODE === 'development' ? LogLevel.VERBOSE : LogLevel.ERROR,
+    locales: {
+      [LocaleType.ZH_CN]: zhCN,
+      [LocaleType.EN_US]: enUS,
+      [LocaleType.FR_FR]: frFR,
+      [LocaleType.RU_RU]: ruRU,
+      [LocaleType.ZH_TW]: zhTW,
+      [LocaleType.VI_VN]: viVN,
+      [LocaleType.FA_IR]: faIR,
+      [LocaleType.JA_JP]: jaJP,
+    },
+    // 布局方向：仅 UI 层生效，渲染层不支持；非法值回退 LTR
+    direction: direction === 'rtl' ? 'rtl' : 'ltr',
+    override: isEmbed ? [] : [[IAuthzIoService, { useClass: LJAuthzService }]],
+  })
+
+  const injector = univer.__getInjector()
+  const userManagerService = injector.get(UserManagerService)
+  userManagerService.setCurrentUser(mockUser)
+
+  log('[createUniver]', 'mobileRenderMode', mobileRenderMode)
+  const mobileRender = mobileRenderMode === 'mobile'
+  // 字体列表走官方 customFontFamily 配置：FontService 首次实例化时与内置列表合并，
+  // 避免 addFonts 内部 addFont 遇重复值抛错中断
+  const fontConfigs = buildFontConfigs(availableFonts)
+  if (mobileRender && !Platform.isDesktopApp) {
+    registerMobilePlugin(univer, option, container, fontConfigs)
+  }
+  else {
+    registerDesktopPlugin(univer, option, container, fontConfigs)
+  }
+
+  // Monkey-patch CanvasColorService.getRenderColor：暗黑模式下某些颜色值（如数字格式产生的 "0"）无法被识别，
+  // 会抛出 "illegal color" 异常导致渲染崩溃。此处捕获异常并返回安全默认色。
+  if (darkMode) {
+    try {
+      const canvasColorService = injector.get(ICanvasColorService)
+      const originalGetRenderColor = canvasColorService.getRenderColor.bind(canvasColorService)
+      canvasColorService.getRenderColor = (color: string) => {
+        try {
+          return originalGetRenderColor(color)
+        }
+        catch (e: unknown) {
+          if (e instanceof Error && e.message.includes('illegal color')) {
+            log('[CanvasColorService] patched illegal color:', color)
+            return '#000000'
+          }
+          throw e
+        }
+      }
+    }
+    catch (e) {
+      log('[CanvasColorService] failed to patch:', e)
+    }
+  }
+
+  const univerAPI = FUniver.newAPI(univer)
+
+  return { univerAPI, univer }
+}
+
+function registerDesktopPlugin(univer: Univer, option: IUniverUIConfig, container: string | HTMLElement, fontConfigs: Array<{ value: string, label: string }>) {
+  univer.registerPlugin(UniverDocsPlugin)
+  univer.registerPlugin(UniverRenderEnginePlugin)
+
+  univer.registerPlugin(UniverUIPlugin, {
+    container,
+    header: option.header,
+    footer: option.footer,
+    toolbar: option.toolbar,
+    contextMenu: option.contextMenu,
+    ribbonType: 'collapsed', // toolbar 样式
+    customFontFamily: fontConfigs, // 自定义字体列表（FontService 构造时与内置列表合并）
+  })
+
+  univer.registerPlugin(UniverDocsUIPlugin)
+
+  univer.registerPlugin(UniverSheetsPlugin)
+  univer.registerPlugin(UniverSheetsUIPlugin, {
+    menu: {
+      'formula-ui.operation.insert-function': {
+        hidden: true,
+      },
+      'formula-ui.operation.more-functions': {
+        hidden: true,
+      },
+      [AddRangeProtectionFromToolbarCommand.id]: {
+        hidden: true,
+      },
+      [ViewSheetPermissionFromContextMenuCommand.id]: {
+        hidden: true,
+      },
+      [ChangeSheetProtectionFromSheetBarCommand.id]: {
+        hidden: true,
+      },
+      [ViewSheetPermissionFromSheetBarCommand.id]: {
+        hidden: true,
+      },
+    },
+  })
+
+  // 数字格式
+  univer.registerPlugin(UniverSheetsNumfmtPlugin)
+  univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
+
+  // 公式
+  univer.registerPlugin(UniverFormulaEnginePlugin)
+  univer.registerPlugin(UniverSheetsFormulaPlugin, {
+    initialFormulaComputing: CalculationMode.FORCED,
+  })
+  univer.registerPlugin(UniverSheetsFormulaUIPlugin)
+
+  // find replace
+  univer.registerPlugin(UniverFindReplacePlugin)
+  univer.registerPlugin(UniverSheetsFindReplacePlugin)
+
+  // data validation
+  univer.registerPlugin(UniverDataValidationPlugin)
+  univer.registerPlugin(UniverSheetsDataValidationPlugin)
+  univer.registerPlugin(UniverSheetsDataValidationUIPlugin)
+
+  // 浮动图片
+  univer.registerPlugin(UniverDrawingPlugin)
+  univer.registerPlugin(UniverDrawingUIPlugin)
+  univer.registerPlugin(UniverDocsDrawingPlugin)
+  univer.registerPlugin(UniverSheetsDrawingPlugin)
+  univer.registerPlugin(UniverSheetsDrawingUIPlugin)
+
+  // 筛选
+  univer.registerPlugin(UniverSheetsFilterPlugin)
+  univer.registerPlugin(UniverSheetsFilterUIPlugin)
+
+  // 评论批注
+  univer.registerPlugin(UniverThreadCommentPlugin)
+  univer.registerPlugin(UniverThreadCommentUIPlugin)
+  univer.registerPlugin(UniverSheetsThreadCommentPlugin)
+  univer.registerPlugin(UniverSheetsThreadCommentUIPlugin)
+
+  // 超链接
+  univer.registerPlugin(UniverSheetsHyperLinkPlugin)
+  univer.registerPlugin(UniverSheetsHyperLinkUIPlugin)
+
+  // 嵌入链接
+  univer.registerPlugin(UniverSheetsEmbedLinkUIPlugin)
+
+  // 排序
+  univer.registerPlugin(UniverSheetsSortPlugin)
+  univer.registerPlugin(UniverSheetsSortUIPlugin)
+
+  // 条件渲染
+  univer.registerPlugin(UniverSheetsConditionalFormattingPlugin)
+  univer.registerPlugin(UniverSheetsConditionalFormattingUIPlugin)
+
+  // 十字高亮
+  univer.registerPlugin(UniverSheetsCrosshairHighlightPlugin)
+
+  // 图表
+  univer.registerPlugin(UniverChartPlugin)
+
+  // 导入导出
+  univer.registerPlugin(UniverSheetsImportExportPlugin)
+
+  // 外链
+  // univer.registerPlugin(UniverSheetsOutgoingLinkPlugin)
+  univer.registerPlugin(UniverSheetsOutgoingLinkUIPlugin)
+
+  // 表格
+  univer.registerPlugin(UniverSheetsTablePlugin)
+  univer.registerPlugin(UniverSheetsTableUIPlugin)
+
+  // 批注
+  univer.registerPlugin(UniverSheetsNotePlugin)
+  univer.registerPlugin(UniverSheetsNoteUIPlugin)
+
+  // Uniscript
+  // univer.registerPlugin(UniverUniscriptPlugin)
+
+  // 本地图片
+  univer.registerPlugin(UniverLocalImagePlugin)
+
+  // 自动保存
+  univer.registerPlugin(SavePlugin)
+}
+
+function registerMobilePlugin(univer: Univer, option: IUniverUIConfig, container: string | HTMLElement, fontConfigs: Array<{ value: string, label: string }>) {
+  // core plugins
+  univer.registerPlugin(UniverDocsPlugin)
+  univer.registerPlugin(UniverRenderEnginePlugin)
+  univer.registerPlugin(UniverMobileUIPlugin, {
+    container,
+    contextMenu: false,
+    header: option.header,
+    footer: option.footer,
+    toolbar: option.toolbar,
+    customFontFamily: fontConfigs, // 自定义字体列表（FontService 构造时与内置列表合并）
+  })
+
+  univer.registerPlugin(UniverDocsUIPlugin)
+  univer.registerPlugin(UniverSheetsPlugin)
+
+  univer.registerPlugin(UniverSheetsMobileUIPlugin)
+  univer.registerPlugin(UniverSheetsFilterPlugin)
+  univer.registerPlugin(UniverSheetsFilterMobileUIPlugin)
+  univer.registerPlugin(UniverSheetsNumfmtPlugin)
+  univer.registerPlugin(UniverFormulaEnginePlugin)
+  univer.registerPlugin(UniverSheetsFormulaPlugin)
+  univer.registerPlugin(UniverSheetsConditionalFormattingMobileUIPlugin)
+  univer.registerPlugin(UniverSheetsDataValidationPlugin)
+  univer.registerPlugin(UniverSheetsDataValidationMobileUIPlugin)
+
+  // 图表
+  // univer.registerPlugin(UniverChartPlugin)
+
+  // 浮动图片
+  // univer.registerPlugin(UniverDrawingPlugin)
+  // univer.registerPlugin(UniverDrawingUIPlugin)
+  // univer.registerPlugin(UniverDocsDrawingPlugin)
+  // univer.registerPlugin(UniverSheetsDrawingPlugin)
+  // univer.registerPlugin(UniverSheetsDrawingUIPlugin)
+
+  // // 超链接
+  // univer.registerPlugin(UniverSheetsHyperLinkPlugin)
+  // univer.registerPlugin(UniverSheetsHyperLinkUIPlugin)
+
+  // 评论批注
+  // univer.registerPlugin(UniverThreadCommentPlugin)
+  // univer.registerPlugin(UniverThreadCommentUIPlugin)
+  // univer.registerPlugin(UniverSheetsThreadCommentPlugin)
+  // univer.registerPlugin(UniverSheetsThreadCommentUIPlugin)
+}
+
+export function createHandlessUniver() {
+  const univer = new Univer({
+    locale: getLanguage(),
+    locales: {
+      [LocaleType.ZH_CN]: zhCN,
+      [LocaleType.EN_US]: enUS,
+      [LocaleType.FR_FR]: frFR,
+      [LocaleType.RU_RU]: ruRU,
+      [LocaleType.ZH_TW]: zhTW,
+      [LocaleType.VI_VN]: viVN,
+      [LocaleType.FA_IR]: faIR,
+      [LocaleType.JA_JP]: jaJP,
+    },
+  })
+
+  // 注册必要的插件（排除 UI 插件）
+  univer.registerPlugin(UniverDocsPlugin)
+  univer.registerPlugin(UniverDocsUIPlugin)
+
+  univer.registerPlugin(UniverSheetsPlugin)
+  univer.registerPlugin(UniverSheetsUIPlugin, {
+    menu: {
+      'formula-ui.operation.insert-function': {
+        hidden: true,
+      },
+      'formula-ui.operation.more-functions': {
+        hidden: true,
+      },
+      [AddRangeProtectionFromToolbarCommand.id]: {
+        hidden: true,
+      },
+      [ViewSheetPermissionFromContextMenuCommand.id]: {
+        hidden: true,
+      },
+      [ChangeSheetProtectionFromSheetBarCommand.id]: {
+        hidden: true,
+      },
+      [ViewSheetPermissionFromSheetBarCommand.id]: {
+        hidden: true,
+      },
+    },
+  })
+
+  // 数字格式
+  univer.registerPlugin(UniverSheetsNumfmtPlugin)
+  univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
+
+  // 公式
+  univer.registerPlugin(UniverFormulaEnginePlugin)
+  univer.registerPlugin(UniverSheetsFormulaPlugin, {
+    initialFormulaComputing: CalculationMode.FORCED,
+  })
+  univer.registerPlugin(UniverSheetsFormulaUIPlugin)
+  univer.registerPlugin(UniverRenderEnginePlugin)
+
+  univer.registerPlugin(UniverLocalImagePlugin)
+
+  const univerAPI = FUniver.newAPI(univer)
+  return { univerAPI, univer }
+}

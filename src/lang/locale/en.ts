@@ -1,0 +1,189 @@
+// English
+export default {
+  // Main.ts
+  CREATE_EXCEL: 'Create excel file',
+  OPEN_AS_EXCEL: 'Open as excel',
+
+  // ExcelView.ts
+  GET_FILE_FAILED: 'Failed to get file',
+  READ_FILE_FAILED: 'Read file error',
+  DATA_PARSING_ERROR: 'Data parsing error',
+  COPY_EMBED_LINK: 'copy embed link',
+  COPY_EMBED_LINK_SUCCESS: 'Copy embed link to clipboard',
+  COPY_EMBED_LINK_FAILED: 'Copy embed link failed',
+
+  COPY_TO_HTML_FAILED: 'Copy embed link failed',
+  COPY_TO_HTML_SUCCESS: 'copy to HTML',
+  COPY_TO_HTML: 'copy to HTML',
+
+  PLEASE_SELECT_DATA: 'Please first select the data to copy',
+
+  IMPORT_XLSX_FILE: 'import xlsx file',
+  EXPORT_XLSX_FILE: 'export xlsx file',
+
+  SAVE_DATA_ERROR: 'save data error',
+
+  // ExcelSettingTab.ts
+  BASE_COLOR: 'Base color scheme',
+  BASE_COLOR_DESC: 'Choose default color scheme',
+  FILE_SETTING: 'File',
+  FILE_LOCATION_MODE: 'File location',
+  FILE_LOCATION_MODE_DESC: 'Choose where new univer files are created',
+  FILE_LOCATION_MODE_ROOT: 'Vault root',
+  FILE_LOCATION_MODE_CURRENT: 'Current file folder',
+  FILE_LOCATION_MODE_CURRENT_SUB: 'Subfolder under current file',
+  FILE_LOCATION_MODE_SPECIFIED: 'Specified folder',
+  FILE_SUB_FOLDER: 'Subfolder name',
+  FILE_SUB_FOLDER_DESC: 'Subfolder name under the current file folder',
+  FOLDER: 'Folder',
+  FOLDER_DESC: 'Create files in this folder by default',
+  FILENAME_PREFIX: 'Filename prefix',
+  FILENAME_PREFIX_DESC: 'Filename prefix',
+  FILENAME_DATE_TIME: 'Filename date time',
+  FILENAME_DATE_TIME_DESC: 'Filename date time',
+  EMBED_LINK_SETTING: 'Embed link',
+  SHEET_HEIGHT: 'Sheet height',
+  SHEET_HEIGHT_DESC: 'Default height for rendering spreadsheets',
+  SHEET_HEIGHT_MODE: 'Sheet height mode',
+  SHEET_HEIGHT_MODE_DESC: 'Choose how the embedded sheet height is determined: auto-fit or a custom default height',
+  SHEET_HEIGHT_MODE_AUTO: 'Auto-fit',
+  SHEET_HEIGHT_MODE_CUSTOM: 'Custom',
+  SHEET_SETTING: 'Sheet',
+  ROW_HEIGHT: 'Row height',
+  ROW_HEIGHT_DESC: 'Default row height',
+  COLUMN_WIDTH: 'Column width',
+  COLUMN_WIDTH_DESC: 'Default column width',
+  DEFAULT_ROWS_LEN: 'Default render rows',
+  DEFAULT_ROWS_LEN_DESC: 'Default number of render rows',
+  DEFAULT_COLS_LEN: 'Default render columns',
+  DEFAULT_COLS_LEN_DESC: 'Default number of rendered columns',
+  SHOW_SHEET_BUTTON: 'Jump to Original Text Button',
+  SHOW_SHEET_BUTTON_DESC: 'This option determines whether to display a button for jumping to the original content via an embedded link.',
+  SHOW_SHEET_FOOTER: 'Enable Sheet Footer Display',
+  SHOW_SHEET_FOOTER_DESC: 'When this option is enabled, the embedded table link will automatically display content at the bottom of the Sheet.',
+  EMBED_LINK_OPEN_MODE: 'Embed link open mode',
+  EMBED_LINK_OPEN_MODE_DESC: 'Choose how to open the file when clicking the embed link button',
+  OPEN_MODE_SPLIT_RIGHT: 'Open in split right',
+  OPEN_MODE_CURRENT_TAB: 'Open in current tab',
+
+  UNIVER_SETTING: 'Univer Setting',
+
+  MOBILE_RENDER_MODE: 'Render Mode',
+  MOBILE_RENDER_MODE_DESC: 'Render mode: select mobile to render in mobile style, and desktop to render in desktop client style.',
+
+  RTL_DIRECTION: 'Layout direction',
+  RTL_DIRECTION_DESC: 'Set the layout direction. RTL applies to the UI layer only; reopen the sheet to take effect.',
+
+  DEFAULT_FONT_FAMILY: 'Default font',
+  DEFAULT_FONT_FAMILY_DESC: 'Default font for cell content. Reopen the sheet to apply it to sheets that are already open; cells with their own font are unaffected.',
+  DEFAULT_FONT_FAMILY_NONE: 'Default',
+
+  NUMBER_FORMAT_LOCALE: 'Number format locale settings',
+  NUMBER_FORMAT_LOCALE_DESC: 'Set the locale for number formatting',
+
+  AUTHORIZATION_CODE: 'Authorization code',
+  AUTHORIZATION_CODE_GET: 'Get Authorization code',
+  AUTHORIZATION_CODE_DESC: 'Enter the authorization code to activate advanced functions',
+  AUTHORIZATION_CODE_SUBMIT: 'Submit',
+  AUTHORIZATION_CODE_SUCCESS: 'Successful activation',
+  AUTHORIZATION_CODE_FAILED: 'Activation failed. Please check whether the activation code is correct',
+
+  COMMAND_LINK_UNIVER: 'Generate spreadsheet embed links',
+  COMMAND_LINK_HTML: 'Generate HTML embed links',
+  COMMAND_LINK_CHARTS_BAR: 'Generate Bar Chart embed links',
+  COMMAND_LINK_CHARTS_BAR_RACING: 'Generate Bar Racing Chart embed links',
+  COMMAND_LINK_CHARTS_LINE: 'Generate Line Chart embed links',
+  COMMAND_LINK_CHARTS_AREA: 'Generate Line Area Chart embed links',
+  COMMAND_LINK_CHARTS_PIE: 'Generate Pie Chart embed links',
+  COMMAND_LINK_CHARTS_RING_PIE: 'Generate Ring Pie Chart embed links',
+
+  LOADING: 'Loading...',
+
+  TAB_TYPE_SHEET: 'Sheet',
+  TAB_TYPE_KANBAN: 'Kanban',
+  TAB_TYPE_CALENDAR: 'Calendar',
+  TAB_TYPE_GROUP: 'Group',
+  TAB_TYPE_BI: 'BI',
+  TAB_TYPE_PIVOT: 'Pivot',
+  TAB_TYPE_DASHBOARD: 'Dashboard',
+
+  TAB_MENU_DEFAULT: 'Default',
+  TAB_MENU_DELETE: 'Delete',
+  TAB_MENU_RENAME: 'Rename',
+  CANNOT_DELETE_SHEET: 'Cannot delete default sheet',
+
+  TAB_HELP_TITLE: 'Help Center',
+  TAB_HELP_CONTENT: 'User Guide',
+
+  TAB_RENAME_CANCEL: 'Cancel',
+  TAB_RENAME_OK: 'OK',
+  TAB_RENAME_TITLE: 'Rename',
+  TAB_RENAME_PLACEHOLDER: 'Please input rename',
+
+  KANBAN_NOT_GROUP: 'Not grouped',
+  KANBAN_GROUP_BY: 'Group by',
+  KANBAN_SETTING: 'Kanban Settings',
+  KANBAN_SETTING_SHEET_ID: 'Data source',
+  KANBAN_SETTING_SHEET_ID_DESC: 'Select the data source for the kanban',
+  KANBAN_SETTING_GROUP_BY: 'Grouping field',
+  KANBAN_SETTING_GROUP_BY_DESC: 'Select the grouping field for the kanban',
+  KANBAN_SETTING_SUBMIT: 'OK',
+
+  SHEET_NAME_NOT_MATCH: 'Auto-save file failed',
+  SAVING_DATA: 'Saving data...',
+  SAVE_IS_TAKING_LONG: 'Saving your previous file took a long time, please wait...',
+  SAVE_IS_TAKING_VERY_LONG: 'For better performance, please consider splitting large files into smaller ones.',
+
+  BIG_SHEET: 'Large Sheet',
+  BIG_SHEET_DESC: 'When enabled, it can solve the issue of Obsidian indexing failure caused by large files, but it will affect search functionality and automatic updates of external links. <a href="https://github.com/ljcoder2015/obsidian-sheet-plus/wiki/What-is-Big-Sheet%3F">More Details</a>',
+
+  IMPORTING: 'Importing...',
+  EXPORTING: 'Exporting...',
+  EXPORTED: 'Exported',
+
+  FONT_FOLDER_NOT_FOUND: 'Font folder not found',
+  FONT_FOLDER: 'Font folder',
+  FONT_FOLDER_DESC: 'Scan all .woff/.woff2/.ttf fonts in this folder',
+
+  // Auto Save
+  AUTO_SAVE: 'Auto Save',
+  AUTO_SAVE_IDLE: 'Auto Save: Idle',
+  AUTO_SAVE_WAITING: 'Auto Save: Waiting',
+  AUTO_SAVE_SAVING: 'Auto Save: Saving',
+  AUTO_SAVE_SAVED: 'Auto Save: Saved {{time}}',
+  AUTO_SAVE_FAILED: 'Auto Save: Failed',
+  AUTO_SAVE_FAILED_MSG: 'Auto Save: Failed {{error}}',
+
+  // AI Assistant settings
+  AI_ASSISTANT_SETTINGS: 'AI Assistant Settings',
+  AI_PLATFORM: 'AI Platform',
+  AI_PLATFORM_DESC: 'Select the AI platform to use',
+  AI_MODEL: 'Model',
+  AI_MODEL_DESC: 'Select the model to use',
+  AI_API_KEY: 'API Key',
+  AI_API_KEY_DESC: 'Enter your AI model API Key',
+  AI_BASE_URL: 'Base URL',
+  AI_BASE_URL_DESC: 'Enter the base URL for the AI model',
+  AI_OPENAI: 'OpenAI',
+  AI_QWEN_CHINA: 'QWen(China)',
+  AI_QWEN: 'QWen(Singapore)',
+  AI_GPT_5: 'GPT-5',
+  AI_GPT_5_MINI: 'GPT-5 mini',
+  AI_GPT_5_NANO: 'GPT-5 nano',
+  AI_QWEN3_MAX: 'qwen3-max',
+  AI_QWEN_PLUS: 'qwen-plus',
+  AI_QWEN_FLASH: 'qwen-flash',
+
+  // Render Mode
+  CHANGE_RENDER_MODE: 'Change Render Mode',
+
+  // Help Menu
+  HELP_MENU_DOCS: 'Documentation',
+  HELP_MENU_TUTORIALS: 'Video Tutorials',
+
+  // Image Picker
+  IMAGE_PICKER_TITLE: 'Select images from vault',
+  IMAGE_PICKER_EMPTY: 'No image files found in vault.',
+  IMAGE_PICKER_CONFIRM: 'Confirm',
+  IMAGE_PICKER_CANCEL: 'Cancel',
+}

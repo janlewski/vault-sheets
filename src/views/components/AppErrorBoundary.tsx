@@ -1,0 +1,31 @@
+import React from 'react'
+
+export class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('[ContainerView Error]', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+        }}>
+          Something went wrong
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}

@@ -1,0 +1,431 @@
+import type { IWorkbookData, IWorksheetData } from '@univerjs/core'
+import type { FRange } from '@univerjs/sheets/facade'
+import type { TFile } from 'obsidian'
+import { OUTGOING_LINKS_KEY, type ParsedHeader, type ParsedMarkdown } from '../services/type'
+
+/**
+ * Markdown 拆分yaml部分跟正文部分
+ * @param str Markdown 文本
+ * @returns { yaml: string, rest: string }
+ */
+export function splitYAML(str: string): { yaml: string, rest: string } | null {
+  const match = str.match(/^-{3}\n([\s\S]*?)-{3}\n([\s\S]*)/)
+  if (match) {
+    const yamlPart = match[1].trim()
+    const restPart = match[2].trim()
+    return { yaml: yamlPart, rest: restPart }
+  }
+  else {
+    return null
+  }
+}
+
+/**
+ * Markdown 获取 yaml 部分
+ * @param str
+ * @returns
+ */
+export function extractYAML(str: string): string | null {
+  const match = str.match(/^-{3}\n([\s\S]*?)-{3}/)
+  return match ? match[1].trim() : null
+}
+
+/**
+ * Markdown 获取正文部分并解析成 IWorkbookData
+ * @param str Markdown 文本
+ * @returns
+ */
+export function getExcelData(str: string, file: TFile): IWorkbookData | null {
+  const sheet = parseMarkdown(str)?.blocks?.get('sheet')
+  if (sheet) {
+    let data: IWorkbookData | null = null
+    if (typeof sheet == 'string') {
+      data = JSON.parse(sheet) as IWorkbookData
+    }
+    else if (typeof sheet == 'object') {
+      data = sheet as IWorkbookData
+    }
+
+    if (data) {
+      data.name = file.path
+      return data
+    }
+  }
+  return null
+}
+
+/** 浮动图（图表/图片）资源在快照 resources 中的插件名，对应 @univerjs/sheets-drawing 的 SHEET_DRAWING_PLUGIN */
+const SHEET_DRAWING_PLUGIN = 'SHEET_DRAWING_PLUGIN'
+
+/** 浮动图在网格上的 from/to 单元格坐标 */
+interface DrawingCell {
+  row: number
+  column: number
+}
+
+/** 单个浮动图及其网格坐标 */
+interface DrawingEntry {
+  sheetTransform?: { from?: DrawingCell, to?: DrawingCell }
+}
+
+/**
+ * 裁剪浮动图资源（range 嵌入时调用）：
+ * 1. 只保留当前 sheet（子表 id 等于 sheetId）的图，其余 sheet 的图已无对应表格；
+ * 2. 丢弃与保留可视区域（startRow~endRow、startCol~endCol）无交集的图——
+ *    否则 Univer 按裁剪后的网格换算坐标时宽高会归零，抛 SHEET_DRAWING_PLACEMENT_EXTENT_INVALID。
+ */
+function pruneDrawings(resources: IWorkbookData['resources'], sheetId: string, range: RangeIndex): void {
+  if (!Array.isArray(resources))
+    return
+
+  for (const resource of resources) {
+    if (resource.name !== SHEET_DRAWING_PLUGIN || typeof resource.data !== 'string')
+      continue
+
+    try {
+      const unitMap = JSON.parse(resource.data) as Record<string, { data?: Record<string, DrawingEntry>, order?: string[] }>
+      const unit = unitMap[sheetId]
+      const kept: Record<string, DrawingEntry> = {}
+
+      for (const [drawingId, drawing] of Object.entries(unit?.data ?? {})) {
+        const { from, to } = drawing.sheetTransform ?? {}
+        if (!from || !to)
+          continue
+        // 行、列区间均与可视区域有交集，才能保证换算出的宽高为正
+        const rowsIntersect = to.row >= range.startRow && from.row <= range.endRow
+        const colsIntersect = to.column >= range.startCol && from.column <= range.endCol
+        if (rowsIntersect && colsIntersect)
+          kept[drawingId] = drawing
+      }
+
+      const order = (unit?.order ?? []).filter(drawingId => kept[drawingId])
+      resource.data = JSON.stringify({ [sheetId]: { data: kept, order } })
+    }
+    catch {
+      // 解析失败保持原样，避免损坏文件
+    }
+  }
+}
+
+/**
+ * data 转换成只显示 range 部分
+ * @param {JSON} data 源数据
+ * @param {string} range 格式为 A1:B6
+ */
+export function getRangeData(
+  data: IWorkbookData | null,
+  sheet: string,
+  range: string,
+): IWorkbookData | null {
+  if (data == null || !data.sheets)
+    return data
+
+  const currentSheet = Object.values(data.sheets).find((item) => {
+    return item.name === sheet
+  })
+  if (!currentSheet)
+    return data
+
+  const rangeNumber = rangeToNumber(range)
+
+  currentSheet.rowCount = rangeNumber.endRow + 1
+  currentSheet.columnCount = rangeNumber.endCol + 1
+
+  const rowData = currentSheet.rowData || {}
+  for (let i = 0; i < rangeNumber.startRow; i++) {
+    const key = i
+    if (rowData[key]) {
+      rowData[key].hd = 1
+    }
+    else {
+      rowData[key] = {
+        hd: 1,
+        h: currentSheet.defaultRowHeight || 19,
+      }
+    }
+  }
+
+  const colData = currentSheet.columnData || {}
+  for (let i = 0; i < rangeNumber.startCol; i++) {
+    const key = i
+    if (colData[key]) {
+      colData[key].hd = 1
+    }
+    else {
+      colData[key] = {
+        hd: 1,
+        w: currentSheet.defaultColumnWidth || 19,
+      }
+    }
+  }
+
+  const sheets: Record<string, unknown> = {}
+  const sheetId = currentSheet.id || ''
+  sheets[sheetId] = currentSheet
+  data.sheets = sheets as Record<string, Partial<IWorksheetData>>
+
+  data.sheetOrder = [sheetId]
+
+  // 同步裁剪浮动图，避免越界图在 Univer 中换算成零宽高而报错
+  pruneDrawings(data.resources, sheetId, rangeNumber)
+
+  return data
+}
+
+export function getSheetData(
+  data: IWorkbookData | null,
+  sheetName: string,
+): IWorkbookData | null {
+  if (data == null || !data.sheets)
+    return data
+
+  const sheet = Object.values(data.sheets).find(s => s.name === sheetName)
+  if (!sheet)
+    return data
+
+  const sheetId = sheet.id || ''
+  data.sheets = { [sheetId]: sheet }
+  data.sheetOrder = [sheetId]
+
+  return data
+}
+
+export interface RangeIndex {
+  startCol: number
+  startRow: number
+  endCol: number
+  endRow: number
+}
+
+/**
+ * range 字符串转换成 RangeIndex
+ * @param range 例如A1:C3
+ * @returns RangeIndex
+ */
+export function rangeToNumber(range: string): RangeIndex {
+  const [start, end] = range.split(':')
+  const startResult = splitAlphaNumeric(start) || { col: 0, row: 0 }
+  const startCol = startResult.col
+  const startRow = startResult.row
+
+  const endResult = splitAlphaNumeric(end) || { col: 0, row: 0 }
+  const endCol = endResult.col
+  const endRow = endResult.row
+
+  return {
+    startCol,
+    startRow,
+    endCol,
+    endRow,
+  }
+}
+
+/**
+ * 行列索引转行列数字对象
+ * @param input 行列索引，例如 A1 A为列索引，1为行索引
+ * @returns A1 => { col: 0, row: 0}
+ */
+function splitAlphaNumeric(input: string): { col: number, row: number } | null {
+  const match = input.match(/([A-Z]+)(\d+)/i)
+  if (match) {
+    const alphaPart = match[1]
+    const colIndex = stringToNumber(alphaPart)
+    const numericPart = Number.parseInt(match[2]) - 1
+    return { col: colIndex, row: numericPart }
+  }
+  else {
+    return null
+  }
+}
+
+/**
+ *
+ * @param str 字母转数字 A = 0 为基准
+ * @returns
+ */
+export function stringToNumber(str: string): number {
+  const map: { [key: string]: number } = {}
+  const base = 'A'.charCodeAt(0)
+  for (let i = 0; i < 26; i++)
+    map[String.fromCharCode(i + base)] = i
+
+  let num = 0
+  for (let i = 0; i < str.length; i++)
+    num = num * 26 + map[str[i]]
+
+  return num
+}
+
+/**
+ * FRange 转 字符串
+ * @param row 开始行索引
+ * @param column 开始列索引
+ * @param width 有几列
+ * @param height 有几行
+ * @returns {row: 1, column: 2, width: 3, height: 3} => C2:E4
+ */
+export function rangeToRangeString(range: FRange): string {
+  const sri = range.getRow()
+  const eri = sri + range.getHeight() - 1
+
+  const sci = range.getColumn()
+  const eci = sci + range.getWidth() - 1
+  // 格式 ${sci}${sri}:${eci}${eri}
+  return `${numberToColRowString(sci, sri)}:${numberToColRowString(
+    eci,
+    eri,
+  )}`
+}
+
+/**
+ * 行列数字索引 转 字母数字字符串
+ * @param colNumber
+ * @param rowNumber
+ * @returns { colNumber: 0, rowNumber: 0} => A1
+ */
+export function numberToColRowString(
+  colNumber: number,
+  rowNumber: number,
+): string {
+  const base = 'A'.charCodeAt(0) - 1
+  let col = colNumber + 1
+  const row = rowNumber + 1
+
+  let result = ''
+  while (col > 0) {
+    const remainder = col % 26
+    result = String.fromCharCode(remainder + base) + result
+    col = Math.floor(col / 26)
+  }
+
+  return result + row
+}
+
+export function parseMarkdown(md: string, filePath?: string): ParsedMarkdown {
+  // --- header ---
+  const headerRegex = /^---\r?\n([\s\S]*?)\r?\n---\s*/
+  const headerMatch = md.match(headerRegex)
+  let header: ParsedHeader | undefined
+
+  if (headerMatch) {
+    const raw = `---\n${headerMatch[1]}\n---`
+    const props: Record<string, string> = {}
+
+    for (const line of headerMatch[1].split(/\r?\n/)) {
+      const m = line.match(/^([^:]+):\s*(.*)$/)
+      if (m)
+        props[m[1].trim()] = m[2].trim()
+    }
+
+    header = { raw, properties: props }
+  }
+
+  const restMd = headerMatch ? md.slice(headerMatch[0].length) : md
+
+  // --- blocks ---
+  const blocks = new Map<string, unknown>()
+
+  // --- code blocks ---
+  // 闭合围栏 ``` 必须独占行首：正文中出现的 ```（如单元格内输入的 ```）不应提前闭合代码块
+  const blockRegex = /```([^\n]*)\n([\s\S]*?)\n[ \t]*```(?=\n|$)/g
+  let isFirstBlock = true
+  let match: RegExpExecArray | null
+
+  while ((match = blockRegex.exec(restMd)) !== null) {
+    const blockType = match[1].trim() || (isFirstBlock ? 'sheet' : 'default')
+    isFirstBlock = false
+
+    // 直接取出代码块内容，不 trim，不替换
+    const jsonText = match[2]
+
+    try {
+      const data = JSON.parse(jsonText)
+      if (blockType === 'sheet' && data && typeof data === 'object' && filePath) {
+        (data as Record<string, unknown>).name = filePath
+      }
+      blocks.set(blockType, data)
+    }
+    catch {
+      // 保留原始内容，避免丢失
+      blocks.set(blockType, jsonText)
+    }
+  }
+
+  // --- outgoingLinks ---
+  const outgoingRegex = /###\s*outgoingLinks\s*\n([\s\S]*?)(?:\n%%|\n###|$)/
+  const outgoingMatch = restMd.match(outgoingRegex)
+
+  if (outgoingMatch) {
+    const links = outgoingMatch[1]
+      .split(/\r?\n/)
+      .map(l => l.trim())
+      .filter(Boolean)
+    blocks.set(OUTGOING_LINKS_KEY, links)
+  }
+
+  return { header, blocks }
+}
+
+/**
+ * 深拷贝函数
+ * 支持类型：Object / Array / Date / RegExp / Map / Set / Symbol / 循环引用
+ */
+export function deepClone<T>(value: T, weakMap = new WeakMap()): T {
+  // 原始类型或函数直接返回
+  if (value === null || typeof value !== 'object')
+    return value
+
+  // 处理循环引用
+  if (weakMap.has(value))
+    return weakMap.get(value)
+
+  let result: unknown
+
+  // Date
+  if (value instanceof Date) {
+    result = new Date(value)
+  }
+  // RegExp
+  else if (value instanceof RegExp) {
+    result = new RegExp(value.source, value.flags)
+  }
+  // Map
+  else if (value instanceof Map) {
+    const map = new Map<unknown, unknown>()
+    weakMap.set(value, map)
+    value.forEach((v, k) => {
+      map.set(deepClone(k, weakMap), deepClone(v, weakMap))
+    })
+    result = map
+  }
+  // Set
+  else if (value instanceof Set) {
+    const set = new Set<unknown>()
+    weakMap.set(value, set)
+    value.forEach((v) => {
+      set.add(deepClone(v, weakMap))
+    })
+    result = set
+  }
+  // Array
+  else if (Array.isArray(value)) {
+    const arr: unknown[] = []
+    weakMap.set(value, arr)
+    value.forEach((item, i) => {
+      arr[i] = deepClone(item, weakMap)
+    })
+    result = arr
+  }
+  // 普通对象
+  else {
+    result = Object.create(Object.getPrototypeOf(value))
+    weakMap.set(value, result)
+
+    Reflect.ownKeys(value).forEach((key) => {
+      // @ts-ignore
+      result[key] = deepClone((value as Record<string, unknown>)[key], weakMap)
+    })
+  }
+
+  return result as T
+}

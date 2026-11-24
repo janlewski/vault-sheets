@@ -1,0 +1,483 @@
+import './style/univer.css'
+import './utils/polyfill'
+import type {
+  CachedMetadata,
+  Menu,
+  MenuItem,
+  ViewState,
+} from 'obsidian'
+import {
+  MarkdownView,
+  Plugin,
+  TAbstractFile,
+  TFile,
+  Workspace,
+  WorkspaceLeaf,
+  normalizePath,
+} from 'obsidian'
+
+import { around, dedupe } from 'monkey-around'
+import { update } from '@ljcoder/authorization'
+import { log } from '@ljcoder/smart-sheet/src/utils/log'
+import { emitEvent } from '@ljcoder/smart-sheet'
+import {
+  DEFAULT_CONTENT,
+  FRONTMATTER,
+  FRONTMATTER_KEY,
+  VIEW_TYPE_EXCEL_PRO,
+} from './common/constants'
+import { ExcelProView } from './views/ExcelProView'
+import type { ExcelProSettings } from './common/setting'
+import { DEFAULT_SETTINGS } from './common/setting'
+import {
+  checkAndCreateFolder,
+  getExcelFilename,
+  getNewUniqueFilepath,
+  resolveFolderPath,
+} from './utils/file'
+import type { PaneTarget } from './common/modifierkey-helper'
+import { t } from './lang/helpers'
+import { ExcelProSettingTab } from './settingTab'
+import {
+  initializeMarkdownPostProcessor,
+  markdownPostProcessor,
+} from './post-processor/markdownPostProcessor'
+import type { FontInfo } from './services/fontManager'
+import { FontManager } from './services/fontManager'
+import { toMarkdown, toStoreState, updateImages, updateOutgoingLink, updateSheetImages, updateSheetOutgoingLinks } from './services/utils'
+import { registerGalleryImageDrag } from './utils/galleryImageDrag'
+
+export default class ExcelProPlugin extends Plugin {
+  // 1.13.0+ Plugin 基类新增 settings?: unknown，此处为有意覆盖（在 loadSettings 中赋值），用 declare 消除 TS2612/TS2564
+  public declare settings: ExcelProSettings
+  public fontManager: FontManager
+  public availableFonts: FontInfo[] = []
+  private settingTab: ExcelProSettingTab
+  private _loaded = false
+
+  async onload() {
+    // 加载设置
+    await this.loadSettings()
+
+    this.settingTab = new ExcelProSettingTab(this.app, this)
+    this.addSettingTab(this.settingTab)
+
+    this.registerView(
+      VIEW_TYPE_EXCEL_PRO,
+      (leaf: WorkspaceLeaf) => new ExcelProView(leaf, this),
+    )
+    this.registerExtensions(['sheet'], VIEW_TYPE_EXCEL_PRO)
+
+    // This creates an icon in the left ribbon.
+    this.addRibbonIcon('sheet', t('CREATE_EXCEL'), () => {
+      const activeFile = this.app.workspace.getActiveFile()
+      const folderPath = activeFile ? activeFile.parent.path : undefined
+      void this.createAndOpenExcel(
+        getExcelFilename(this.settings),
+        folderPath,
+        this.getBlackData(),
+      )
+    })
+
+    // markdwon后处理
+    this.addMarkdownPostProcessor()
+
+    // inspiration taken from kanban: https://github.com/mgmeyers/obsidian-kanban/blob/44118e25661bff9ebfe54f71ae33805dc88ffa53/src/main.ts#L267
+    this.registerMonkeyPatches()
+
+    this.switchToExcelAfterLoad()
+
+    this.registerEventListeners()
+
+    this.registerCommands()
+
+    void this.loadFonts().then(() => {
+      // 字体是异步加载的，晚于 addSettingTab 触发的设置定义缓存；
+      // 需重算定义，否则设置页「默认字体」下拉缺少自定义字体
+      this.settingTab.update()
+    })
+
+    this.registerEvent(
+      this.app.workspace.on('css-change', () => {
+        const isDark = this.app.isDarkMode()
+        this.settings.darkModal = isDark ? 'dark' : 'light'
+        void this.saveSettings()
+        this.app.workspace.getLeavesOfType(VIEW_TYPE_EXCEL_PRO).forEach((leaf) => {
+          const view = leaf.view as ExcelProView
+          view.refresh()
+        })
+      }),
+    )
+
+    this._loaded = true
+  }
+
+  onunload() {
+    // 清理已 adopt 的字体 sheet：插件禁用/重载后不遗留旧 @font-face 在 document 上累积
+    this.fontManager?.unloadAllFonts()
+    // 解决 Redi 重复注入报错
+    // @ts-expect-error
+    // window.global.REDI_CONTEXT_LOCK = false
+    // @ts-expect-error
+    // window.global.REDI_GLOBAL_LOCK = false
+  }
+
+  // 供设置页在字体目录变更后重新扫描字体
+  async loadFonts() {
+    // 复用实例：重建会丢弃 loadedFonts 缓存，旧 sheet 将永久遗留在 document 上累积
+    if (!this.fontManager) {
+      this.fontManager = new FontManager(this.app)
+    }
+    else {
+      this.fontManager.unloadAllFonts()
+    }
+    // 未配置字体文件夹则跳过
+    if (!this.settings.fontFolder) {
+      this.availableFonts = []
+      return
+    }
+    const fonts = await this.fontManager.loadAllFontsFromFolder(this.settings.fontFolder)
+    this.availableFonts = fonts
+  }
+
+  private getBlackData() {
+    return FRONTMATTER + DEFAULT_CONTENT
+  }
+
+  private addMarkdownPostProcessor() {
+    // console.log("addMarkdownPostProcessor--------")
+    initializeMarkdownPostProcessor(this)
+    this.registerMarkdownPostProcessor(markdownPostProcessor)
+  }
+
+  private registerEventListeners() {
+    // 监听文件改名
+    this.registerEvent(
+      this.app.vault.on('rename', async (file, oldPath) => {
+        if (file instanceof TAbstractFile) {
+          // 更新外链
+          await this.updateBacklinks(file, oldPath)
+          // 更改当前表格的 name 字段
+          emitEvent('fileRenamed', { oldPath, newPath: file.path })
+          log('[ExcelProPlugin]', 'Send fileRenamed', oldPath, file.path)
+        }
+      }),
+    )
+
+    // 单元格图片大图预览：长图无法完整显示，支持按住拖动平移，滚轮缩放保持 Univer 默认行为
+    registerGalleryImageDrag(this)
+  }
+
+  private switchToExcelAfterLoad() {
+    this.app.workspace.onLayoutReady(() => {
+      let leaf: WorkspaceLeaf
+      const markdownLeaf = this.app.workspace.getLeavesOfType('markdown')
+      for (leaf of markdownLeaf) {
+        if (
+          leaf.view instanceof MarkdownView
+          && leaf.view.file
+          && this.isExcelFile(leaf.view.file)
+        ) {
+          void this.setExcelView(leaf)
+        }
+      }
+    })
+  }
+
+  /**
+   * 找到所有引用 oldPath 的文件并更新
+   * newFile: 链接更新后的文件
+   * oldPath: 链接旧路径
+   */
+  private async updateBacklinks(newFile: TAbstractFile, oldPath: string) {
+    const links = this.app.metadataCache.resolvedLinks
+    for (const [sourcePath, targets] of Object.entries(links)) {
+      if (targets[oldPath]) {
+        const sourceFile = this.app.vault.getAbstractFileByPath(sourcePath)
+        if (sourceFile instanceof TFile && this.isExcelFile(sourceFile)) {
+          await this.updateLinksInFile(sourceFile, newFile, oldPath)
+        }
+      }
+    }
+  }
+
+  /**
+   * 更新单个文件中的链接
+   * file: 需要更新链接的文件
+   * newFile: 链接更新后的文件
+   * oldPath: 链接旧路径
+   */
+  private async updateLinksInFile(file: TFile, newFile: TAbstractFile, oldPath: string) {
+    const cache: CachedMetadata | null = this.app.metadataCache.getFileCache(file)
+    if (!cache?.links && !cache?.embeds)
+      return
+
+    const content = await this.app.vault.read(file)
+    let dataService = toStoreState(content, file.path)
+    if (!dataService) {
+      return
+    }
+    log('[main]', 'updateLinksInFile', dataService, newFile.path, oldPath)
+    dataService = updateSheetOutgoingLinks(dataService, newFile.path, oldPath)
+    const oldLinkText = this.oldPathToWikiLink(oldPath)
+    dataService = updateOutgoingLink(dataService, newFile.path, oldLinkText)
+    // 图片引用：source 存 [[linktext]]（相对当前表格文件），重命名后按新最短名同步快照与区块
+    const oldImageLink = this.getOldLinktext(oldPath)
+    const newImageLink = this.getNewLinktext(newFile, file)
+    dataService = updateSheetImages(dataService, newImageLink, oldImageLink)
+    dataService = updateImages(dataService, newImageLink, oldImageLink)
+    log('[main]', 'updateLinksInFile after', dataService, oldLinkText)
+
+    const updated = toMarkdown(dataService)
+
+    if (updated) {
+      await this.app.vault.modify(file, updated)
+      log('[main]', `✅ Updated links in: ${file.path}`)
+    }
+  }
+
+  private oldPathToWikiLink(oldPath: string): string {
+  // 提取最后一个 `/` 后的文件名
+    const fileName = oldPath.split('/').pop() ?? oldPath
+    // 去掉 .md 扩展名
+    const withoutExt = fileName.replace(/\.md$/i, '')
+    return `[[${withoutExt}]]`
+  }
+
+  /** 重命名前的图片 linktext：旧路径的文件名（含扩展名，Obsidian 对图片链接保留扩展名） */
+  private getOldLinktext(oldPath: string): string {
+    return oldPath.split('/').pop() ?? oldPath
+  }
+
+  /** 计算重命名后相对当前表格文件的新 linktext（metadataCache.fileToLinktext 最短唯一名） */
+  private getNewLinktext(newFile: TAbstractFile, sourceFile: TFile): string {
+    if (newFile instanceof TFile) {
+      const linktext = this.app.metadataCache.fileToLinktext(newFile, sourceFile.path, true)
+      if (linktext) {
+        return linktext
+      }
+    }
+    return newFile.name
+  }
+
+  async loadSettings() {
+    const settingData = await this.loadData()
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, settingData)
+    update(this.settings.authorizationCode, () => {})
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings)
+  }
+
+  private registerCommands() {
+    const fileMenuHandlerCreateNew = (menu: Menu, file: TFile) => {
+      menu.addItem((item: MenuItem) => {
+        item
+          .setTitle(t('CREATE_EXCEL'))
+          .setIcon('sheet')
+          .onClick(() => {
+            let filepath = file.path
+            if (file instanceof TFile) {
+              filepath = normalizePath(
+                file.path.substr(0, file.path.lastIndexOf(file.name)),
+              )
+            }
+            void this.createAndOpenExcel(getExcelFilename(this.settings), filepath)
+          })
+      })
+    }
+
+    this.registerEvent(
+      this.app.workspace.on('file-menu', fileMenuHandlerCreateNew),
+    )
+    this.addCommand({
+      id: 'spreadsheet-autocreation',
+      icon: 'sheet',
+      name: t('CREATE_EXCEL'),
+      callback: () => {
+        const activeFile = this.app.workspace.getActiveFile()
+        const folderPath = activeFile ? activeFile.parent.path : undefined
+        void this.createAndOpenExcel(
+          getExcelFilename(this.settings),
+          folderPath,
+          this.getBlackData(),
+        )
+      },
+    })
+  }
+
+  private registerMonkeyPatches() {
+    const key = 'https://gitee.com/ljcoder2015/obsidian-excel-pro'
+    this.register(
+      around(Workspace.prototype, {
+        getActiveViewOfType(old) {
+          return dedupe(key, old, function (...args) {
+            const result = old && old.apply(this, args)
+
+            const maybeSheetView = this.app?.workspace?.activeLeaf?.view
+            if (!maybeSheetView || !(maybeSheetView instanceof ExcelProView))
+              return result
+          })
+        },
+      }),
+    )
+
+    // @ts-expect-error
+    if (!this.app.plugins?.plugins?.['obsidian-hover-editor']) {
+      this.register(
+        // stolen from hover editor
+        around(WorkspaceLeaf.prototype, {
+          getRoot(old) {
+            return function () {
+              const top = old.call(this)
+              return top.getRoot === this.getRoot ? top : top.getRoot()
+            }
+          },
+        }),
+      )
+    }
+
+    const { _loaded, app: pluginApp } = this
+    // Monkey patch WorkspaceLeaf to open Excel with ExcelProView by default
+    this.register(
+      around(WorkspaceLeaf.prototype, {
+        // Excel can be viewed as markdown or Excalidraw, and we keep track of the mode
+        // while the file is open. When the file closes, we no longer need to keep track of it.
+        detach(next) {
+          return function () {
+            return next.apply(this)
+          }
+        },
+
+        setViewState(next) {
+          return function (state: ViewState, ...rest: unknown[]) {
+            // console.log("setViewState state ===", state)
+            if (
+              _loaded
+              // If we have a markdown file
+              && state.type === 'markdown'
+              && state.state?.file
+            ) {
+              const filepath: string = state.state.file as string
+              // Then check for the excalidraw frontMatterKey
+              const cache = pluginApp.metadataCache.getCache(filepath)
+
+              // console.log("setViewState cache cccc", cache)
+              if (
+                (cache?.frontmatter && cache?.frontmatter[FRONTMATTER_KEY])
+                || filepath.includes('.univer.md')
+              ) {
+                // console.log("setViewState --", cache)
+                // If we have it, force the view type to excalidraw
+                const newState = {
+                  ...state,
+                  type: VIEW_TYPE_EXCEL_PRO,
+                }
+
+                return (next as (...args: unknown[]) => unknown).apply(this, [newState, ...rest])
+              }
+            }
+
+            return (next as (...args: unknown[]) => unknown).apply(this, [state, ...rest])
+          }
+        },
+      }),
+    )
+  }
+
+  public async setExcelView(leaf: WorkspaceLeaf) {
+    await leaf.setViewState({
+      type: VIEW_TYPE_EXCEL_PRO,
+      state: leaf.view.getState(),
+      popstate: true,
+    } as ViewState)
+  }
+
+  public async createExcel(
+    filename: string,
+    foldername?: string,
+    initData?: string,
+  ): Promise<TFile> {
+    const folderpath = resolveFolderPath(
+      this.settings.fileLocationMode,
+      this.settings.fileSubFolder,
+      this.settings.folder,
+      foldername,
+    )
+    await checkAndCreateFolder(this.app.vault, folderpath)
+
+    const fname = getNewUniqueFilepath(this.app.vault, filename, folderpath)
+    const file = await this.app.vault.create(
+      fname,
+      initData ?? this.getBlackData(),
+    )
+
+    return file
+  }
+
+  public async createAndOpenExcel(
+    filename: string,
+    foldername?: string,
+    initData?: string,
+  ): Promise<string> {
+    const file = await this.createExcel(filename, foldername, initData)
+    this.openExcel(file, 'new-pane', true, undefined)
+    return file.path
+  }
+
+  public openExcel(
+    excelFile: TFile,
+    location: PaneTarget,
+    active = false,
+    subpath?: string,
+  ) {
+    if (location === 'md-properties')
+      location = 'new-tab'
+
+    let leaf: WorkspaceLeaf | null = null
+    if (location === 'popout-window')
+      leaf = this.app.workspace.openPopoutLeaf()
+
+    if (location === 'new-tab')
+      leaf = this.app.workspace.getLeaf('tab')
+    if (location === 'split-right')
+      leaf = this.app.workspace.getLeaf('split', 'vertical')
+    if (location === 'split-bottom')
+      leaf = this.app.workspace.getLeaf('split', 'horizontal')
+
+    if (!leaf) {
+      leaf = this.app.workspace.getLeaf(false)
+      if (leaf.view.getViewType() !== 'empty' && location === 'new-pane')
+        leaf = this.app.workspace.getMostRecentLeaf()
+    }
+
+    leaf
+      ?.openFile(
+        excelFile,
+        !subpath || subpath === ''
+          ? { active, state: { type: VIEW_TYPE_EXCEL_PRO } }
+          : {
+              active,
+              eState: { subpath },
+              state: { type: VIEW_TYPE_EXCEL_PRO },
+            },
+      )
+      .then(() => {
+        if (leaf)
+          return this.setExcelView(leaf)
+      })
+  }
+
+  public isExcelFile(f: TFile) {
+    if (!f)
+      return false
+    if (f.extension === 'sheet')
+      return true
+
+    const fileCache = f ? this.app.metadataCache.getFileCache(f) : null
+    return (
+      !!fileCache?.frontmatter && !!fileCache?.frontmatter[FRONTMATTER_KEY]
+    )
+  }
+}

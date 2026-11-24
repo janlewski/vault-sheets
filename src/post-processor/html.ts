@@ -1,0 +1,122 @@
+import { type IWorkbookData, LifecycleStages } from '@univerjs/core'
+import { log } from '@ljcoder/smart-sheet/src/utils/log'
+import { createUniver } from '../views/univer/setup-univer'
+import { randomString } from '../utils/uuid'
+
+/**
+ * 获取指定 sheet 中指定 cells 的数据转换成 HTML
+ * @param data markdown 文件原始data
+ * @param sheet sheet 名称
+ * @param range 选中的cells 格式为: sri-sci:eri-eci 例如 6-6:7-8
+ * @param height 可选，指定容器固定高度（px）；不传时高度由内容自然撑开
+ * @returns 渲染好的 HTML 容器元素
+ */
+export async function renderToHtml(data: IWorkbookData, sheet: string, range: string, height?: number): Promise<HTMLElement> {
+  log('[renderToHtml]', data, sheet, range, height)
+  const id = `univer-embed-${randomString(6)}`
+  const containerEl = createDiv({
+    cls: 'lj-html-iframe',
+  })
+  // 指定高度时固定容器高度（复用 CSS 已有 overflow: auto，内容超出时纵向滚动）
+  if (height !== undefined) {
+    containerEl.style.height = `${height}px`
+  }
+  const univerEl = createDiv({
+    attr: {
+      id,
+      style: `display: none;`,
+    },
+  })
+  activeDocument.body.append(univerEl)
+
+  try {
+    const options = {
+      header: false,
+      contextMenu: false,
+      footer: false,
+    }
+    const { univerAPI } = createUniver([], options, id, 'desktop', false, true)
+
+    const lifeCycleDisposable = univerAPI.addEvent(univerAPI.Event.LifeCycleChanged, (event) => {
+      if (event.stage === LifecycleStages.Steady) {
+        lifeCycleDisposable.dispose()
+        univerEl.remove()
+      }
+    })
+    const fWorkbook = univerAPI.createWorkbook(data || {})
+    const sheetName = sheet || fWorkbook.getActiveSheet()?.getSheetName() || ''
+    const fSheet = fWorkbook.getSheetByName(sheetName)
+
+    if (!fSheet) {
+      log('[renderToHtml]', 'Sheet not found:', sheetName)
+      const emptyContainer = createDiv({
+        cls: 'lj-html-error',
+        text: `Sheet "${sheet}" not found`,
+      })
+      containerEl.appendChild(emptyContainer)
+      return containerEl
+    }
+
+    const rangeStr = range || fSheet.getDataRange()?.getA1Notation() || ''
+    const fRange = fSheet.getRange(rangeStr)
+
+    if (!fRange) {
+      log('[renderToHtml]', 'Invalid range:', rangeStr)
+      const emptyContainer = createDiv({
+        cls: 'lj-html-error',
+        text: `Invalid range: ${range}`,
+      })
+      containerEl.appendChild(emptyContainer)
+      return containerEl
+    }
+
+    await new Promise(resolve => window.setTimeout(resolve, 1000))
+
+    const htmlString = fRange.generateHTML()
+    log('[renderToHtml]', 'htmlString', htmlString)
+
+    if (htmlString && typeof htmlString === 'string') {
+      let processedHtml = htmlString
+
+      processedHtml = processedHtml.replace(/<google-sheets-html-origin>|<\/google-sheets-html-origin>/g, '')
+      processedHtml = processedHtml.replace(/width:\s*0px/g, 'width:100%')
+
+      const htmlContainer = createDiv({ cls: 'lj-html-table-container' })
+      const sanitizedHtml = processedHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+      // 使用 DOMParser 安全解析 HTML，避免直接设置 innerHTML
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(sanitizedHtml, 'text/html')
+      while (doc.body.firstChild) {
+        htmlContainer.appendChild(doc.body.firstChild)
+      }
+
+      const table = htmlContainer.querySelector('table')
+      if (table) {
+        table.classList.add('lj-html-table')
+        const cells = table.querySelectorAll('td, th')
+        cells.forEach((cell) => {
+          cell.classList.add('lj-html-cell')
+        })
+      }
+
+      containerEl.appendChild(htmlContainer)
+    }
+    else {
+      const emptyContainer = createDiv({
+        cls: 'lj-html-empty',
+        text: 'No data available',
+      })
+      containerEl.appendChild(emptyContainer)
+    }
+  }
+  catch (error) {
+    log('[renderToHtml]', 'Error generating HTML:', error)
+    const errorContainer = createDiv({
+      cls: 'lj-html-error',
+      text: `Error: ${error}`,
+    })
+    containerEl.appendChild(errorContainer)
+  }
+
+  return containerEl
+}
