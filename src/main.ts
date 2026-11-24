@@ -16,8 +16,8 @@ import {
   normalizePath,
 } from 'obsidian'
 
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import { around, dedupe } from 'monkey-around'
-import { update } from '@ljcoder/authorization'
 import { log } from '@ljcoder/smart-sheet/src/utils/log'
 import { emitEvent } from '@ljcoder/smart-sheet'
 import {
@@ -263,7 +263,6 @@ export default class ExcelProPlugin extends Plugin {
   async loadSettings() {
     const settingData = await this.loadData()
     this.settings = Object.assign({}, DEFAULT_SETTINGS, settingData)
-    update(this.settings.authorizationCode, () => {})
   }
 
   async saveSettings() {
@@ -308,7 +307,7 @@ export default class ExcelProPlugin extends Plugin {
   }
 
   private registerMonkeyPatches() {
-    const key = 'https://gitee.com/ljcoder2015/obsidian-excel-pro'
+    const key = 'https://github.com/janlewski/vault-sheets'
     this.register(
       around(Workspace.prototype, {
         getActiveViewOfType(old) {

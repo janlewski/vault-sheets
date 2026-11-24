@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import { moment } from 'obsidian'
 import { LocaleType } from '@univerjs/core'
 // Univer 1.0.3 的 Tools 已移除 deepMerge，改用项目内实现
@@ -34,13 +35,6 @@ import embedLinkruRU from '@ljcoder/embed-link-ui/locale/ru-RU'
 import embedLinkviVN from '@ljcoder/embed-link-ui/locale/vi-VN'
 import embedLinkzhCN from '@ljcoder/embed-link-ui/locale/zh-CN'
 import embedLinkzhTW from '@ljcoder/embed-link-ui/locale/zh-TW'
-import importExportenUS from '@ljcoder/import-export/locale/en-US'
-import importExportfaIR from '@ljcoder/import-export/locale/fa-IR'
-import importExportfrFR from '@ljcoder/import-export/locale/fr-FR'
-import importExportruRU from '@ljcoder/import-export/locale/ru-RU'
-import importExportviVN from '@ljcoder/import-export/locale/vi-VN'
-import importExportzhCN from '@ljcoder/import-export/locale/zh-CN'
-import importExportzhTW from '@ljcoder/import-export/locale/zh-TW'
 
 import saveenUS from '@ljcoder/save/locale/en-US'
 import savefaIR from '@ljcoder/save/locale/fa-IR'
@@ -286,7 +280,6 @@ export const enUS = Tools.deepMerge(
   shthyperlinkenUS,
   shttableenUS,
   embedLinkenUS,
-  importExportenUS,
   outgoingLinkenUS,
   SheetsTableUIenUS,
   SheetsNoteUIenUS,
@@ -321,7 +314,6 @@ export const frFR = Tools.deepMerge(
   shthyperlinkfrFR,
   shttablefrFR,
   embedLinkfrFR,
-  importExportfrFR,
   outgoingLinkfrFR,
   SheetsTableUIfrFR,
   SheetsNoteUIfrFR,
@@ -356,7 +348,6 @@ export const ruRU = Tools.deepMerge(
   shthyperlinkruRU,
   shttableruRU,
   embedLinkruRU,
-  importExportruRU,
   outgoingLinkruRU,
   SheetsTableUIruRU,
   SheetsNoteUIruRU,
@@ -391,7 +382,6 @@ export const zhCN = Tools.deepMerge(
   shthyperlinkzhCN,
   shttablezhCN,
   embedLinkzhCN,
-  importExportzhCN,
   outgoingLinkzhCN,
   SheetsTableUIZhCN,
   SheetsNoteUIZhCN,
@@ -426,7 +416,6 @@ export const zhTW = Tools.deepMerge(
   shthyperlinkzhTW,
   shttablezhTW,
   embedLinkzhTW,
-  importExportzhTW,
   outgoingLinkzhTW,
   SheetsTableUIZhTW,
   SheetsNoteUIZhTW,
@@ -461,7 +450,6 @@ export const viVN = Tools.deepMerge(
   shthyperlinkviVN,
   shttableviVN,
   embedLinkviVN,
-  importExportviVN,
   outgoingLinkviVN,
   SheetsTableUIviVN,
   SheetsNoteUIviVN,
@@ -496,7 +484,6 @@ export const faIR = Tools.deepMerge(
   shthyperlinkfaIR,
   shttablefaIR,
   embedLinkfaIR,
-  importExportfaIR,
   outgoingLinkfaIR,
   SheetsTableUIfaIR,
   SheetsNoteUIfaIR,

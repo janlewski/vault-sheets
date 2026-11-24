@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // Croatian
 export default {
   // Main.ts
@@ -59,12 +60,6 @@ export default {
   MOBILE_RENDER_MODE: 'Način prikaza za mobilne uređaje',
   MOBILE_RENDER_MODE_DESC: 'Način prikaza za mobilne uređaje: odaberite mobilni za prikaz u stilu za mobilne uređaje, a desktop za prikaz u stilu za desktop aplikaciju.',
 
-  AUTHORIZATION_CODE: 'Autorizacijski kod',
-  AUTHORIZATION_CODE_GET: 'Preuzmi autorizacijski kod',
-  AUTHORIZATION_CODE_DESC: 'Unesite autorizacijski kod za aktivaciju naprednih funkcija',
-  AUTHORIZATION_CODE_SUBMIT: 'Pošaljite',
-  AUTHORIZATION_CODE_SUCCESS: 'Aktivacija uspješna',
-  AUTHORIZATION_CODE_FAILED: 'Aktivacija nije uspjela. Provjerite je li autorizacijski kod ispravan',
 
   COMMAND_LINK_UNIVER: 'Generiraj ugrađene poveznice za tablice',
   COMMAND_LINK_HTML: 'Generiraj HTML ugrađene poveznice',

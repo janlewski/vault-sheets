@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // Deutsch
 
 export default {
@@ -63,12 +64,6 @@ export default {
   NUMBER_FORMAT_LOCALE: 'Einstellungen für die Zahlenformatierung nach Gebietsschema',
   NUMBER_FORMAT_LOCALE_DESC: 'Gebietsschema für die Zahlenformatierung festlegen',
 
-  AUTHORIZATION_CODE: 'Autorisierungscode',
-  AUTHORIZATION_CODE_GET: 'Autorisierungscode abrufen',
-  AUTHORIZATION_CODE_DESC: 'Geben Sie den Autorisierungscode ein, um erweiterte Funktionen zu aktivieren',
-  AUTHORIZATION_CODE_SUBMIT: 'Absenden',
-  AUTHORIZATION_CODE_SUCCESS: 'Erfolgreich aktiviert',
-  AUTHORIZATION_CODE_FAILED: 'Aktivierung fehlgeschlagen. Bitte überprüfen Sie, ob der Aktivierungscode korrekt ist',
 
   COMMAND_LINK_UNIVER: 'Tabellen-Einbettungslinks generieren',
   COMMAND_LINK_HTML: 'HTML-Einbettungslinks generieren',

@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // 日本語
 
 export default {
@@ -82,12 +83,6 @@ export default {
   NUMBER_FORMAT_LOCALE: '数値形式のロケール設定',
   NUMBER_FORMAT_LOCALE_DESC: '数値の書式に使うロケールを設定します',
 
-  AUTHORIZATION_CODE: '認証コード',
-  AUTHORIZATION_CODE_GET: '認証コードを取得',
-  AUTHORIZATION_CODE_DESC: '認証コードを入力して、高度な機能を有効にします',
-  AUTHORIZATION_CODE_SUBMIT: '送信',
-  AUTHORIZATION_CODE_SUCCESS: '有効化に成功しました',
-  AUTHORIZATION_CODE_FAILED: '有効化に失敗しました。認証コードが正しいか確認してください',
 
   COMMAND_LINK_UNIVER: 'スプレッドシートの埋め込みリンクを生成',
   COMMAND_LINK_HTML: 'HTML の埋め込みリンクを生成',
@@ -136,7 +131,7 @@ export default {
   SAVE_IS_TAKING_VERY_LONG: 'パフォーマンス向上のため、大きなファイルは小さなファイルに分割することをおすすめします。',
 
   BIG_SHEET: '大きなシート',
-  BIG_SHEET_DESC: '有効にすると、大きなファイルが原因で Obsidian のインデックス作成に失敗する問題を解消できますが、検索機能と外部リンクの自動更新に影響します。<a href="https://github.com/ljcoder2015/obsidian-sheet-plus/wiki/What-is-Big-Sheet%3F">詳細はこちら</a>',
+  BIG_SHEET_DESC: '有効にすると、大きなファイルが原因で Obsidian のインデックス作成に失敗する問題を解消できますが、検索機能と外部リンクの自動更新に影響します。詳細はこちら',
 
   IMPORTING: 'インポート中...',
   EXPORTING: 'エクスポート中...',

@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import React, { useEffect, useState } from 'react'
 import type { MenuProps, TabsProps } from 'antd'
 import { Button, ConfigProvider, Dropdown, Flex, Splitter, Tabs, theme } from 'antd'
@@ -328,14 +329,7 @@ export const ContainerView = function ContainerView() {
         label: t('HELP_MENU_DOCS'),
         key: 'docs',
         onClick: () => {
-          window.open('https://docs.ljcoder.com/', '_blank')
-        },
-      },
-      {
-        label: t('HELP_MENU_TUTORIALS'),
-        key: 'tutorials',
-        onClick: () => {
-          window.open('https://www.youtube.com/@obsidian-sheet-plus/playlists', '_blank')
+          window.open('https://github.com/janlewski/vault-sheets#readme', '_blank')
         },
       },
     ],

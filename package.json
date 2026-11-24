@@ -27,10 +27,8 @@
     "patch-local": "node scripts/patch-local.js"
   },
   "dependencies": {
-    "@ljcoder/authorization": "1.10.3",
     "@ljcoder/charts": "1.0.1",
     "@ljcoder/embed-link-ui": "1.10.4",
-    "@ljcoder/import-export": "1.10.5",
     "@ljcoder/local-image": "0.1.1",
     "@ljcoder/save": "0.20.1",
     "@ljcoder/sheets-outgoing-link": "1.10.4",

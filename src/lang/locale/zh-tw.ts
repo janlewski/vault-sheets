@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // 繁體中文
 
 export default {
@@ -63,12 +64,6 @@ export default {
   MOBILE_RENDER_MODE: '渲染模式',
   MOBILE_RENDER_MODE_DESC: '渲染模式, 選擇 mobile 渲染成手機端樣式, desktop 渲染成用戶端樣式',
 
-  AUTHORIZATION_CODE: '授權碼',
-  AUTHORIZATION_CODE_GET: '取得授權碼',
-  AUTHORIZATION_CODE_DESC: '輸入授權碼，啟用進階功能',
-  AUTHORIZATION_CODE_SUBMIT: '提交',
-  AUTHORIZATION_CODE_SUCCESS: '啟用成功',
-  AUTHORIZATION_CODE_FAILED: '啟用失敗，請檢查授權碼是否正確',
 
   COMMAND_LINK_UNIVER: '產生 表格 內嵌連結',
   COMMAND_LINK_HTML: '產生 HTML 內嵌連結',

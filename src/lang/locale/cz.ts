@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // čeština
 
 export default {
@@ -63,12 +64,6 @@ export default {
   NUMBER_FORMAT_LOCALE: 'Nastavení národního prostředí pro formátování čísel',
   NUMBER_FORMAT_LOCALE_DESC: 'Nastavte národní prostředí pro formátování čísel',
 
-  AUTHORIZATION_CODE: 'Autorizační kód',
-  AUTHORIZATION_CODE_GET: 'Získat autorizační kód',
-  AUTHORIZATION_CODE_DESC: 'Zadejte autorizační kód pro aktivaci pokročilých funkcí',
-  AUTHORIZATION_CODE_SUBMIT: 'Odeslat',
-  AUTHORIZATION_CODE_SUCCESS: 'Aktivace proběhla úspěšně',
-  AUTHORIZATION_CODE_FAILED: 'Aktivace selhala. Zkontrolujte, zda je aktivace kód správný',
 
   COMMAND_LINK_UNIVER: 'Vygenerovat vložené odkazy na tabulku',
   COMMAND_LINK_HTML: 'Vygenerovat vložené odkazy HTML',

@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import '@ljcoder/sheets-outgoing-link-ui/lib/style.css'
 
 import { IAuthzIoService, LocaleType, LogLevel, Univer, UserManagerService } from '@univerjs/core'
@@ -79,7 +80,6 @@ import { UniverSheetsEmbedLinkUIPlugin } from '@ljcoder/embed-link-ui'
 import { UniverSheetsSortUIPlugin } from '@univerjs/sheets-sort-ui'
 import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair-highlight'
 import { UniverChartPlugin } from '@ljcoder/charts'
-import { UniverSheetsImportExportPlugin } from '@ljcoder/import-export'
 import { UniverSheetsOutgoingLinkUIPlugin } from '@ljcoder/sheets-outgoing-link-ui'
 import { FUniver } from '@univerjs/core/facade'
 import { log } from '@ljcoder/smart-sheet/src/utils/log'
@@ -261,9 +261,6 @@ function registerDesktopPlugin(univer: Univer, option: IUniverUIConfig, containe
 
   // 图表
   univer.registerPlugin(UniverChartPlugin)
-
-  // 导入导出
-  univer.registerPlugin(UniverSheetsImportExportPlugin)
 
   // 外链
   // univer.registerPlugin(UniverSheetsOutgoingLinkPlugin)

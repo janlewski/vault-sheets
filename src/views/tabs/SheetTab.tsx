@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { ICellData, INumfmtLocaleTag } from '@univerjs/core'
 import { CommandType, LifecycleStages } from '@univerjs/core'
@@ -10,7 +11,6 @@ import { IRenderManagerService } from '@univerjs/engine-render'
 import { InsertSheetDrawingCommand, RemoveSheetDrawingCommand, SHEET_DRAWING_PLUGIN } from '@univerjs/sheets-drawing'
 import { Spin } from 'antd'
 import { ReplaceSnapshotCommand } from '@univerjs/docs-ui'
-import { ExportFinishCommand, ExportStartCommand, ImportFinishCommand, ImportStartCommand } from '@ljcoder/import-export'
 import { SaveCommand } from '@ljcoder/save'
 import { TFile } from 'obsidian'
 import { createUniver } from '../univer/setup-univer'
@@ -333,34 +333,6 @@ export function SheetTab({ switchTab }: { switchTab: () => void }) {
           if (params.url.startsWith('[[')) {
             app?.workspace.openLinkText(params.url.slice(2, -2), '', 'split')
           }
-        }
-
-        // 导入添加 loading 提示
-        if (res.id === ImportStartCommand.id) {
-          setSpinTip(t('IMPORTING'))
-          setLoading(true)
-        }
-
-        if (res.id === ImportFinishCommand.id) {
-          setLoading(false)
-          setSpinTip(t('LOADING'))
-          // 导入完成后同步新工作簿数据到 store，触发保存
-          const activeWorkbook = univerApi.getActiveWorkbook()
-          if (activeWorkbook) {
-            dispatch({ type: SHEET_UPDATE_ACTION, payload: activeWorkbook.save() })
-          }
-        }
-
-        if (res.id === ExportStartCommand.id) {
-          log('[SheetTab]', 'ExportStartCommand')
-          setLoading(true)
-          setSpinTip(t('EXPORTING'))
-        }
-
-        if (res.id === ExportFinishCommand.id) {
-          log('[SheetTab]', 'ExportFinishCommand')
-          setLoading(false)
-          setSpinTip(t('EXPORTED'))
         }
 
         // 仅同步本地 mutation

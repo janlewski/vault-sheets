@@ -3,9 +3,9 @@
 packages:
   - "."
 
-patchedDependencies:
-  immediate@3.0.6: patches/immediate@3.0.6.patch
-  lie@3.3.0: patches/lie@3.3.0.patch
+patchedDependencies: {}
+  # immediate@3.0.6 and lie@3.3.0 patches are kept in patches/.
+  # They apply again when a dependency (exceljs) installs those exact versions.
   # Univer 1.4.0 升级后先暂时移除 patch，等构建验证后再判断上游是否已修复。
   # '@univerjs/sheets-ui@1.4.0': patches/@univerjs__sheets-ui@1.4.0.patch
   # '@univerjs/sheets-data-validation-ui@1.4.0': patches/@univerjs__sheets-data-validation-ui@1.4.0.patch

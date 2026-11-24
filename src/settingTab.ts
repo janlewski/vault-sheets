@@ -1,6 +1,6 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import type { App, SettingDefinitionItem } from 'obsidian'
-import { Notice, PluginSettingTab } from 'obsidian'
-import { update } from '@ljcoder/authorization'
+import { PluginSettingTab } from 'obsidian'
 import { ConfigService } from '@univerjs/core'
 import { FontService, UI_PLUGIN_CONFIG_KEY } from '@univerjs/ui'
 import { t } from './lang/helpers'
@@ -232,56 +232,6 @@ export class ExcelProSettingTab extends PluginSettingTab {
             name: t('DEFAULT_FONT_FAMILY'),
             desc: t('DEFAULT_FONT_FAMILY_DESC'),
             control: { type: 'dropdown', key: 'defaultFontFamily', options: this.getDefaultFontOptions() },
-          },
-        ],
-      },
-      {
-        type: 'group',
-        // 授权码独立分组：与购买链接放在一起
-        heading: t('AUTHORIZATION_CODE'),
-        items: [
-          {
-            name: t('AUTHORIZATION_CODE'),
-            desc: t('AUTHORIZATION_CODE_DESC'),
-            // render 回调不自动保存，需手动写回并持久化
-            render: (setting) => {
-              setting
-                .addTextArea(text =>
-                  text
-                    .setValue(this.plugin.settings.authorizationCode)
-                    .onChange(async (value) => {
-                      this.plugin.settings.authorizationCode = value
-                      await this.plugin.saveSettings()
-                    }),
-                )
-                .addButton((button) => {
-                  button
-                    .setButtonText(t('AUTHORIZATION_CODE_SUBMIT'))
-                    .onClick(() => {
-                      if (this.plugin.settings.authorizationCode && this.plugin.settings.authorizationCode.length > 0) {
-                        update(this.plugin.settings.authorizationCode, (res) => {
-                          if (res.code === 0)
-                            new Notice(t('AUTHORIZATION_CODE_SUCCESS'))
-                          else
-                            new Notice(t('AUTHORIZATION_CODE_FAILED'))
-                        })
-                      }
-                      else {
-                        new Notice(t('AUTHORIZATION_CODE_FAILED'))
-                      }
-                    })
-                })
-            },
-          },
-          {
-            // 购买链接（与原页脚内容一致）
-            name: '',
-            render: (setting) => {
-              setting.settingEl.empty()
-              setting.settingEl.createEl('hr')
-              const linksEl = setting.settingEl.createDiv('authorization-code-container')
-              linksEl.createEl('a', { href: 'https://docs.ljcoder.com/price/activate/en.html', text: t('AUTHORIZATION_CODE_GET') })
-            },
           },
         ],
       },
