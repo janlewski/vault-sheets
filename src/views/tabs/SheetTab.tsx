@@ -12,6 +12,7 @@ import { InsertSheetDrawingCommand, RemoveSheetDrawingCommand, SHEET_DRAWING_PLU
 import { Spin } from 'antd'
 import { ReplaceSnapshotCommand } from '@univerjs/docs-ui'
 import { SaveCommand } from '@ljcoder/save'
+import { ExportCsvFinishCommand, ExportCsvStartCommand, ExportXlsxFinishCommand, ExportXlsxStartCommand, ImportCsvFinishCommand, ImportCsvStartCommand, ImportXlsxFinishCommand, ImportXlsxStartCommand } from '../../import-export/commands'
 import { TFile } from 'obsidian'
 import { createUniver } from '../univer/setup-univer'
 import { observeRenderVisibility } from '../univer/render-visibility'
@@ -333,6 +334,26 @@ export function SheetTab({ switchTab }: { switchTab: () => void }) {
           if (params.url.startsWith('[[')) {
             app?.workspace.openLinkText(params.url.slice(2, -2), '', 'split')
           }
+        }
+
+        if (res.id === ImportXlsxStartCommand.id || res.id === ImportCsvStartCommand.id) {
+          setSpinTip(t('IMPORTING'))
+          setLoading(true)
+        }
+        if (res.id === ImportXlsxFinishCommand.id || res.id === ImportCsvFinishCommand.id) {
+          setLoading(false)
+          setSpinTip(t('LOADING'))
+          const activeWorkbook = univerApi.getActiveWorkbook()
+          if (activeWorkbook)
+            dispatch({ type: SHEET_UPDATE_ACTION, payload: activeWorkbook.save() })
+        }
+        if (res.id === ExportXlsxStartCommand.id || res.id === ExportCsvStartCommand.id) {
+          setLoading(true)
+          setSpinTip(t('EXPORTING'))
+        }
+        if (res.id === ExportXlsxFinishCommand.id || res.id === ExportCsvFinishCommand.id) {
+          setLoading(false)
+          setSpinTip(t('EXPORTED'))
         }
 
         // 仅同步本地 mutation

@@ -85,6 +85,7 @@ import { FUniver } from '@univerjs/core/facade'
 import { log } from '../../utils/log'
 import { SavePlugin } from '@ljcoder/save'
 import { UniverLocalImagePlugin } from '@ljcoder/local-image'
+import { VaultSheetsExchangePlugin } from '../../import-export/plugin'
 import { enUS, faIR, frFR, getLanguage, jaJP, ruRU, viVN, zhCN, zhTW } from '../../lang/locale'
 import { type FontInfo, buildFontConfigs } from '../../services/fontManager'
 import { LJAuthzService } from './mockUserService'
@@ -261,6 +262,8 @@ function registerDesktopPlugin(univer: Univer, option: IUniverUIConfig, containe
 
   // 图表
   univer.registerPlugin(UniverChartPlugin)
+
+  univer.registerPlugin(VaultSheetsExchangePlugin)
 
   // 外链
   // univer.registerPlugin(UniverSheetsOutgoingLinkPlugin)

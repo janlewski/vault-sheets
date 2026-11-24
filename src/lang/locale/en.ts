@@ -137,6 +137,10 @@ export default {
   IMPORTING: 'Importing...',
   EXPORTING: 'Exporting...',
   EXPORTED: 'Exported',
+  IMPORT_XLSX: 'Import xlsx',
+  IMPORT_CSV: 'Import csv',
+  EXPORT_XLSX: 'Export xlsx',
+  EXPORT_CSV: 'Export csv',
 
   FONT_FOLDER_NOT_FOUND: 'Font folder not found',
   FONT_FOLDER: 'Font folder',
