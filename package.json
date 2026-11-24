@@ -33,7 +33,6 @@
     "@ljcoder/save": "0.20.1",
     "@ljcoder/sheets-outgoing-link": "1.10.4",
     "@ljcoder/sheets-outgoing-link-ui": "1.10.4",
-    "@ljcoder/smart-sheet": "0.0.3",
     "@univerjs/core": "1.5.2",
     "@univerjs/data-validation": "1.5.2",
     "@univerjs/design": "1.5.2",

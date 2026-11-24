@@ -101,6 +101,8 @@ export default {
   TAB_TYPE_BI: 'BI',
   TAB_TYPE_PIVOT: 'Pivot',
   TAB_TYPE_DASHBOARD: 'Dashboard',
+  VIEW_TYPE_UNAVAILABLE: 'This view type is not available in Vault Sheets.',
+  CHART_EMBED_UNSUPPORTED: 'Chart embeds are not supported in Vault Sheets.',
 
   TAB_MENU_DEFAULT: 'Default',
   TAB_MENU_DELETE: 'Delete',

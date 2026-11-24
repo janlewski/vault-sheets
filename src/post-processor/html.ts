@@ -1,5 +1,6 @@
 import { type IWorkbookData, LifecycleStages } from '@univerjs/core'
-import { log } from '@ljcoder/smart-sheet/src/utils/log'
+// Modified 2026-11-24 by janlewski for Vault Sheets.
+import { log } from '../utils/log'
 import { createUniver } from '../views/univer/setup-univer'
 import { randomString } from '../utils/uuid'
 

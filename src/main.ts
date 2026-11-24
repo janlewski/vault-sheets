@@ -18,8 +18,8 @@ import {
 
 // Modified 2026-11-24 by janlewski for Vault Sheets.
 import { around, dedupe } from 'monkey-around'
-import { log } from '@ljcoder/smart-sheet/src/utils/log'
-import { emitEvent } from '@ljcoder/smart-sheet'
+import { emitEvent } from './utils/eventBus'
+import { log } from './utils/log'
 import {
   DEFAULT_CONTENT,
   FRONTMATTER,

@@ -82,7 +82,7 @@ import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair
 import { UniverChartPlugin } from '@ljcoder/charts'
 import { UniverSheetsOutgoingLinkUIPlugin } from '@ljcoder/sheets-outgoing-link-ui'
 import { FUniver } from '@univerjs/core/facade'
-import { log } from '@ljcoder/smart-sheet/src/utils/log'
+import { log } from '../../utils/log'
 import { SavePlugin } from '@ljcoder/save'
 import { UniverLocalImagePlugin } from '@ljcoder/local-image'
 import { enUS, faIR, frFR, getLanguage, jaJP, ruRU, viVN, zhCN, zhTW } from '../../lang/locale'

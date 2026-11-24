@@ -20,6 +20,11 @@
   padding: 0;
 }
 
+.vault-sheets-unavailable-view,
+.vault-sheets-chart-embed-notice {
+  padding: 12px 16px;
+}
+
 .lj-table-box {
 	overflow-x: scroll;
 }

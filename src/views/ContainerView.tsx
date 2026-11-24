@@ -2,45 +2,26 @@
 import React, { useEffect, useState } from 'react'
 import type { MenuProps, TabsProps } from 'antd'
 import { Button, ConfigProvider, Dropdown, Flex, Splitter, Tabs, theme } from 'antd'
-import { Notice, Platform } from 'obsidian'
-import { CalendarTab, DashboardTab, KanbanTab, McpServerManager, mcpService, useEventBus } from '@ljcoder/smart-sheet'
-import { createStyles } from 'antd-style'
-import { randomString } from '../utils/uuid'
+import { Notice } from 'obsidian'
 import { TabType } from '../services/type'
+import { useEventBus } from '../utils/useEventBus'
 import { t } from '../lang/helpers'
 import { log } from '../utils/log'
 import { useEditorContext } from '../context/editorContext'
 import { useUniver } from '../context/UniverContext'
 import { useSheetStore } from '../context/SheetStoreProvider'
-import { TAB_DEFAULT_ACTION, TAB_RENAME_ACTION, VIEW_ADD_ACTION, VIEW_CONFIG_ADD_ACTION, VIEW_REMOVE_ACTION } from '../services/reduce'
+import { TAB_DEFAULT_ACTION, TAB_RENAME_ACTION, VIEW_REMOVE_ACTION } from '../services/reduce'
 import { SheetTab } from './tabs/SheetTab'
 import { RenameModal } from './components/RenameModal'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
-const useStyle = createStyles(({ prefixCls, css }) => ({
-  linearGradientButton: css`
-    &.${prefixCls}-btn-primary:not([disabled]):not(.${prefixCls}-btn-dangerous) {
-      > span {
-        position: relative;
-        color: #fff;
-      }
-
-      &::before {
-        content: '';
-        background: linear-gradient(135deg, #6253e1, #04befe);
-        position: absolute;
-        inset: -1px;
-        opacity: 1;
-        transition: all 0.3s;
-        border-radius: inherit;
-      }
-
-      &:hover::before {
-        opacity: 0;
-      }
-    }
-  `,
-}))
+function unavailableView(): React.ReactElement {
+  return (
+    <div className="vault-sheets-unavailable-view">
+      {t('VIEW_TYPE_UNAVAILABLE')}
+    </div>
+  )
+}
 
 export const ContainerView = function ContainerView() {
   const { state, dispatch } = useSheetStore()
@@ -51,9 +32,6 @@ export const ContainerView = function ContainerView() {
   const [triggerSource, setTriggerSource] = useState<string | null>(null) // 记录是点击哪个 tab 触发的下拉菜单
   const [renameModalVisible, setRenameModalVisible] = useState(false) // 重命名
   const [renameModalName, setRenameModalName] = useState('') // 重命名的名称
-  const [showMCP, setShowMCP] = useState(false)
-  const [, setMcpRunning] = useState(false)
-  const { styles } = useStyle()
 
   const tabs = state.tabs.tabs || []
   const [activeKey, setActiveKey] = useState('sheet')
@@ -77,54 +55,11 @@ export const ContainerView = function ContainerView() {
         forceRender: false,
       }
     }
-    else if (tab.type === TabType.KANBAN) {
+    else if (tab.type === TabType.KANBAN || tab.type === TabType.CALENDAR || tab.type === TabType.DASHBOARD) {
       return {
         key: tab.key,
         label: tab.label,
-        children: (
-          <KanbanTab
-            key={tab.key}
-            id={tab.key}
-            univerApi={univerApi}
-            config={state.views?.[tab.key] ?? {}}
-            workbook={state.sheet}
-            dispatch={dispatch}
-          />
-        ),
-        forceRender: false,
-      }
-    }
-    else if (tab.type === TabType.CALENDAR) {
-      return {
-        key: tab.key,
-        label: tab.label,
-        children: (
-          <CalendarTab
-            key={tab.key}
-            id={tab.key}
-            univerApi={univerApi}
-            config={state.views?.[tab.key] ?? {}}
-            workbook={state.sheet}
-            dispatch={dispatch}
-          />
-        ),
-        forceRender: false,
-      }
-    }
-    else if (tab.type === TabType.DASHBOARD) {
-      return {
-        key: tab.key,
-        label: tab.label,
-        children: (
-          <DashboardTab
-            key={tab.key}
-            id={tab.key}
-            univerApi={univerApi}
-            config={state.views?.[tab.key] ?? {}}
-            workbook={state.sheet}
-            dispatch={dispatch}
-          />
-        ),
+        children: unavailableView(),
         forceRender: false,
       }
     }
@@ -139,7 +74,7 @@ export const ContainerView = function ContainerView() {
   })
 
   log('[ContainerView]', 'items', items)
-  useEventBus('fileRenamed', (payload) => {
+  useEventBus<{ oldPath: string, newPath: string }>('fileRenamed', (payload) => {
     if (!payload) {
       return // 防止 undefined
     }
@@ -162,12 +97,6 @@ export const ContainerView = function ContainerView() {
       setAlgorithm([])
     }
   }, [plugin])
-
-  useEffect(() => {
-    if (univerApi) {
-      mcpService.setUniverApi(univerApi)
-    }
-  }, [univerApi])
 
   const tabMenu: MenuProps['items'] = [
     {
@@ -211,115 +140,6 @@ export const ContainerView = function ContainerView() {
       }
       setRenameModalVisible(true)
     }
-  }
-
-  const createKanbanConfig = () => {
-    if (!univerApi) {
-      return {}
-    }
-    const sheet = univerApi.getActiveWorkbook()?.getActiveSheet()
-    if (sheet === null || sheet === undefined) {
-      return {}
-    }
-    return {
-      sheetId: sheet.getSheetId(),
-      groupColumn: '0',
-      hiddenColumns: [],
-      order: [],
-    }
-  }
-
-  const createCalendarConfig = () => {
-    if (!univerApi) {
-      return {}
-    }
-    const sheet = univerApi.getActiveWorkbook()?.getActiveSheet()
-    if (sheet === null || sheet === undefined) {
-      return {}
-    }
-    return {
-      sheetId: sheet.getSheetId(),
-      title: {
-        colIndex: 0,
-        title: 'A',
-      },
-      dateStart: {
-        colIndex: 1,
-        title: 'B',
-      },
-      dateEnd: {
-        colIndex: 2,
-        title: 'C',
-      },
-    }
-  }
-
-  // 添加标签页
-  const addTabMenu: MenuProps = {
-    items: [
-      {
-        label: t('TAB_TYPE_KANBAN'),
-        key: TabType.KANBAN,
-      },
-      {
-        label: t('TAB_TYPE_CALENDAR'),
-        key: TabType.CALENDAR,
-      },
-      {
-        label: t('TAB_TYPE_DASHBOARD'),
-        key: TabType.DASHBOARD,
-      },
-      // {
-      //   label: t('TAB_TYPE_GROUP'),
-      //   key: 'group',
-      // },
-      // {
-      //   label: t('TAB_TYPE_BI'),
-      //   key: 'bi',
-      // },
-      // {
-      //   label: t('TAB_TYPE_PIVOT'),
-      //   key: 'pivot',
-      // },
-    ],
-    onClick: (item) => {
-      // 菜单项的 key 来自上面的 TabType 枚举，这里统一收敛为枚举类型，
-      // 避免 string 与 enum 直接比较（typescript-eslint 会判为不安全的枚举比较）。
-      const key = item.key as TabType
-      const id = randomString(6)
-      dispatch({
-        type: VIEW_ADD_ACTION,
-        key: id,
-        payload: {
-          key: id,
-          type: key,
-          label: t(`TAB_TYPE_${key.toUpperCase()}`),
-        },
-      })
-      if (key === TabType.KANBAN) {
-        const kanbanData = createKanbanConfig()
-        dispatch({
-          type: VIEW_CONFIG_ADD_ACTION,
-          key: id,
-          payload: kanbanData,
-        })
-      }
-      if (key === TabType.CALENDAR) {
-        const calendarData = createCalendarConfig()
-        dispatch({
-          type: VIEW_CONFIG_ADD_ACTION,
-          key: id,
-          payload: calendarData,
-        })
-      }
-      if (key === TabType.DASHBOARD) {
-        dispatch({
-          type: VIEW_CONFIG_ADD_ACTION,
-          key: id,
-          payload: { widgets: [], layoutVersion: 0 },
-        })
-      }
-    },
   }
 
   // 帮助菜单
@@ -380,7 +200,7 @@ export const ContainerView = function ContainerView() {
 
   return (
     <AppErrorBoundary>
-      <div className="lj-content-view" data-theme={plugin.settings.darkModal === 'dark' ? 'sheet-plus-dark' : ''}>
+      <div className="lj-content-view" data-theme={plugin.settings.darkModal === 'dark' ? 'vault-sheets-dark' : ''}>
         <ConfigProvider
           theme={{
             algorithm,
@@ -407,40 +227,14 @@ export const ContainerView = function ContainerView() {
                 tabBarExtraContent={{
                   right: (
                     <Flex gap="small">
-                      <Dropdown menu={addTabMenu} trigger={['click']}>
-                        <Button color="default" variant="outlined">+</Button>
-                      </Dropdown>
                       <Dropdown menu={helpTabMenu} trigger={['hover']}>
                         <Button>?</Button>
                       </Dropdown>
-
-                      {!Platform.isMobileApp && (
-                        <Button
-                          type="primary"
-                          className={styles.linearGradientButton}
-                          onClick={
-                            () => {
-                              setShowMCP(v => !v)
-                            }
-                          }
-                        >
-                          REST API
-                        </Button>
-                      )}
                     </Flex>
                   ),
                 }}
               />
             </Splitter.Panel>
-
-            { showMCP && (
-              <Splitter.Panel defaultSize="30%">
-                <McpServerManager
-                  onClose={() => setShowMCP(false)}
-                  onStatusChange={running => setMcpRunning(running)}
-                />
-              </Splitter.Panel>
-            )}
           </Splitter>
           <RenameModal
             visible={renameModalVisible}
