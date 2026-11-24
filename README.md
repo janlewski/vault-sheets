@@ -1,67 +1,59 @@
-# Sheet Plus for Obsidian
+# Vault Sheets
 
-**A full-featured spreadsheet experience, built on** **[Univer](https://github.com/dream-num/univer), directly inside your Obsidian vault.**
+Edit spreadsheets in your vault. Vault Sheets is a free [Univer](https://github.com/dream-num/univer) spreadsheet editor with its own xlsx and csv import and export.
 
-Sheet Plus was built to handle **real spreadsheet use cases inside Obsidian**
+Vault Sheets is an independent project. It is **not** official Sheet Plus and it is **not** affiliated with ljcoder. It is a derivative of [obsidian-sheet-plus](https://github.com/ljcoder2015/obsidian-sheet-plus) (Apache-2.0, commit `f4d3ea7`). That link is attribution only. Documentation for this project is this repository.
 
-Run the DeepSeek Harness web UI inside Obsidian's WebView to automate spreadsheet data processing through the Sheet Plus REST API.
+## What it does
 
-It also works with other AI agent tools such as Claude, OpenCode, Claudian, and more. For usage details, see the [tutorial documentation](https://docs.ljcoder.com/guide/rest-api/deep-seek-harness.html).
+- Edit `.sheet` files: formulas, formatting, data validation, filters, comments, and the rest of the Univer spreadsheet UI.
+- Import and export `.xlsx` and `.csv` in the browser. No separate license key.
+- Keep the basic integrations that already ship in Apache-2.0 packages: in-sheet charts, embed a **sheet** in a note, outgoing links, vault images, and save.
 
-![dsh](/images/dsh.gif)
+## What it does not do
 
-Create interactive dashboards to visualize data
+- Calendar, Kanban, and Dashboard views. Older `.sheet` files that still contain those tabs open on a short placeholder. The spreadsheet tab still edits and saves. You cannot create those views.
+- MCP, agent, or REST API access.
+- Embed **chart** links. A chart embed shows a short notice instead of a chart. Sheet and cell embeds still work.
+- It is not listed in the official Community plugin directory. Do not expect it there.
 
-![dashboard](/images/dashboard.gif)
+### xlsx and csv scope
 
-***
+Import and export cover workbook sheets (names and order), cell values (text, number, boolean, date), formulas with cached values, merged cells, basic font / fill / border / alignment / wrap, column widths, row heights, hidden rows and columns when they are straightforward, and number formats.
 
-## Basic Features&#x20;
+These are skipped without failing the import: conditional formatting, data validation, filters, images, drawings, charts, comments, pivot tables, rich text beyond basic font styling, and sheet protection. Frozen panes are not preserved.
 
-- [Embed Sheet Link](https://docs.ljcoder.com/guide/features/embed-sheet-link.html): Embed a spreadsheet inside your notes.
-- [Outgoing Link](https://docs.ljcoder.com/guide/features/outgoing-link.html): Embed a link in a cell that jumps to another file in your vault; clicking it opens that file directly.
-- [Charts](https://docs.ljcoder.com/guide/features/charts.html): Create charts from spreadsheet data.
-- [Data Validation](https://docs.ljcoder.com/guide/features/data-validation.html): Validate spreadsheet data, supporting checkboxes, dropdowns, dates, and more.
-- [Image](https://docs.ljcoder.com/guide/features/image.html): Insert images into spreadsheets.
-- [Custom Font](https://docs.ljcoder.com/guide/features/custom-font.html): Customize spreadsheet fonts.
-- [Number Format](https://docs.ljcoder.com/guide/features/number-format-locale.html): Customize number formats, supporting different regional decimal displays.
+CSV import replaces the open workbook with a single sheet parsed as UTF-8. A leading `;` or `,` in the file selects the delimiter. Formula-looking cells (text starting with `=`) are stored as formulas. CSV export writes the **active** sheet only, values and formulas as text, comma-separated, with no styles.
 
-***
+## Install
 
-## Advanced Features (License Required)
+Vault Sheets is not in the official Community plugin directory. Install it from a GitHub Release or with [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
-- [Agent Integrations](https://docs.ljcoder.com/guide/rest-api/quick-start.html): Automate spreadsheet data processing with AI agents such as DeepSeek Harness, OpenCode, Claudian, and more.
-- [Import & Export](https://docs.ljcoder.com/guide/features/import-export.html): Supports importing and exporting `xlsx` format files.
-- [Embed Chart Link](https://docs.ljcoder.com/guide/features/embed-chart-link.html): Embed a chart link in your notes, directly rendering spreadsheet data as charts
-- [Dashboard](https://docs.ljcoder.com/guide/Advanced%20Features/Dashboard/Introduction.html): Create interactive dashboards to visualize data.
-- [Kanban View](https://docs.ljcoder.com/guide/features/kanban.html): Display spreadsheet data as a Kanban board for easy task management.
-- [Calendar View](https://docs.ljcoder.com/guide/features/calendar.html): Display spreadsheet data as a calendar for easy date management.
+### Manual
 
-***
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/janlewski/vault-sheets/releases).
+2. Create `<vault>/.obsidian/plugins/vault-sheets/`.
+3. Put those three files in that folder. The names must stay exactly `main.js`, `manifest.json`, and `styles.css`.
+4. Reload Community plugins and enable **Vault Sheets** under Installed.
 
-## Documentation
+### BRAT
 
-- 📘 User Guide: <https://docs.ljcoder.com/>
-- 📺 YouTube Channel: <https://www.youtube.com/@obsidian-sheet-plus>
+1. Install BRAT.
+2. Add `janlewski/vault-sheets` as a beta plugin.
+3. Select a release. BRAT uses the three files attached to that release.
 
-***
+Minimum app version: 1.13.0.
 
-## Feedback
+## Development
 
-Sheet Plus is actively maintained and continuously evolving.
+```bash
+pnpm install
+pnpm test
+pnpm build
+```
 
-If you have:
+`pnpm build` writes `dist/main.js`, `dist/manifest.json`, and `dist/styles.css`.
 
-- feature ideas
-- workflow suggestions
-- bug reports
-- performance feedback
+## License
 
-you’re very welcome to reach out through any of the following channels:
-
-- 💬 **Discord**: Join the community to discuss features and workflows
-  👉 <https://discord.gg/fufpbG4tJg>
-- 📧 **Email**: <ljcoder@163.com>
-- 🐛 **GitHub Issues**: for bugs and feature requests 👉 <https://github.com/ljcoder2015/obsidian-sheet-plus/issues>
-
-Community feedback directly influences future updates and priorities.
+Apache License 2.0. See [LICENSE](LICENSE), [NOTICE](NOTICE), and [THIRD_PARTY.md](THIRD_PARTY.md).

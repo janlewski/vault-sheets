@@ -1,0 +1,39 @@
+Vault Sheets
+Copyright 2026 Jan Lewandowski
+
+This project is an independent derivative of obsidian-sheet-plus
+(https://github.com/ljcoder2015/obsidian-sheet-plus) by ljcoder,
+licensed under the Apache License, Version 2.0.
+The derivative is based on commit f4d3ea7.
+
+Vault Sheets is not official Sheet Plus and is not affiliated with ljcoder.
+
+This product includes Univer (https://github.com/dream-num/univer).
+The @univerjs/* packages are Apache-2.0, except @univerjs/icons which is MIT.
+Files that still carry a DreamNum copyright header remain under that copyright:
+
+- src/utils/types.ts (Copyright 2023-present DreamNum Inc.)
+- src/utils/tools.ts (Copyright 2023-present DreamNum Inc.)
+- src/views/univer/lazy.ts (Copyright 2023-present DreamNum Co., Ltd.)
+- src/views/univer/very-lazy.ts (Copyright 2023-present DreamNum Co., Ltd.)
+
+The following Apache-2.0 packages published by ljcoder are used for basic
+features (in-sheet charts, embed sheet links, outgoing links, vault images,
+and save):
+
+- @ljcoder/charts 1.0.1
+- @ljcoder/embed-link-ui 1.10.4
+- @ljcoder/local-image 0.1.1
+- @ljcoder/save 0.20.1
+- @ljcoder/sheets-outgoing-link 1.10.4
+- @ljcoder/sheets-outgoing-link-ui 1.10.4
+
+These packages are not included:
+
+- @ljcoder/smart-sheet
+- @ljcoder/authorization
+- @ljcoder/univer-authorization
+- @ljcoder/import-export
+
+See THIRD_PARTY.md for other third-party licenses and LICENSE for the
+Apache License 2.0 text.
