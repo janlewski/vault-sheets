@@ -54,6 +54,8 @@ pnpm build
 
 `pnpm build` writes `dist/main.js`, `dist/manifest.json`, and `dist/styles.css`.
 
+Pushing a `v*` or `0.*` tag runs the release workflow. It tests, builds, and attaches those three files to the GitHub Release. `versions.json` maps each plugin version to `minAppVersion`.
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE), [NOTICE](NOTICE), and [THIRD_PARTY.md](THIRD_PARTY.md).
