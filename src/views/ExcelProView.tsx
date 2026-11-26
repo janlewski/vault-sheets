@@ -3,16 +3,15 @@ import { Notice, Platform, TextFileView, debounce } from 'obsidian'
 import type { Root } from 'react-dom/client'
 import { createRoot } from 'react-dom/client'
 import React from 'react'
-import { emitEvent } from '@ljcoder/smart-sheet'
-import { error } from '@ljcoder/smart-sheet/src/utils/log'
-import { mcpService } from '@ljcoder/smart-sheet/src/mcp/McpService'
+// Modified 2026-11-24 by janlewski for Vault Sheets.
+import { emitEvent } from '../utils/eventBus'
+import { error, log } from '../utils/log'
 import type ExcelProPlugin from '../main'
 
 import { BLANK_CONTENT, VIEW_TYPE_EXCEL_PRO } from '../common/constants'
 import { t } from '../lang/helpers'
 import { EditorContext } from '../context/editorContext'
 import type { ViewSemaphores } from '../utils/types'
-import { log } from '../utils/log'
 import { UniverProvider } from '../context/UniverContext'
 import type { SheetStoreState } from '../services/reduce'
 import { toMarkdown, toStoreState } from '../services/utils'
@@ -121,15 +120,6 @@ export class ExcelProView extends TextFileView {
 
     // 清理状态栏项
     this.autoSaveItem?.remove()
-
-    // 关闭 MCP 服务
-    try {
-      mcpService.stop()
-      log('[ExcelProView]', 'MCP service stopped')
-    }
-    catch (e) {
-      log('[ExcelProView]', 'Error stopping MCP service', e)
-    }
 
     this.dispose()
   }
@@ -250,7 +240,7 @@ export class ExcelProView extends TextFileView {
     }
     catch (e) {
       console.error({
-        where: 'SheetPlus.save',
+        where: 'VaultSheets.save',
         fn: () => this.save(),
         error: e,
       })

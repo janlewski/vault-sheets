@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // English
 export default {
   // Main.ts
@@ -81,12 +82,6 @@ export default {
   NUMBER_FORMAT_LOCALE: 'Number format locale settings',
   NUMBER_FORMAT_LOCALE_DESC: 'Set the locale for number formatting',
 
-  AUTHORIZATION_CODE: 'Authorization code',
-  AUTHORIZATION_CODE_GET: 'Get Authorization code',
-  AUTHORIZATION_CODE_DESC: 'Enter the authorization code to activate advanced functions',
-  AUTHORIZATION_CODE_SUBMIT: 'Submit',
-  AUTHORIZATION_CODE_SUCCESS: 'Successful activation',
-  AUTHORIZATION_CODE_FAILED: 'Activation failed. Please check whether the activation code is correct',
 
   COMMAND_LINK_UNIVER: 'Generate spreadsheet embed links',
   COMMAND_LINK_HTML: 'Generate HTML embed links',
@@ -106,6 +101,8 @@ export default {
   TAB_TYPE_BI: 'BI',
   TAB_TYPE_PIVOT: 'Pivot',
   TAB_TYPE_DASHBOARD: 'Dashboard',
+  VIEW_TYPE_UNAVAILABLE: 'This view type is not available in Vault Sheets.',
+  CHART_EMBED_UNSUPPORTED: 'Chart embeds are not supported in Vault Sheets.',
 
   TAB_MENU_DEFAULT: 'Default',
   TAB_MENU_DELETE: 'Delete',
@@ -135,11 +132,15 @@ export default {
   SAVE_IS_TAKING_VERY_LONG: 'For better performance, please consider splitting large files into smaller ones.',
 
   BIG_SHEET: 'Large Sheet',
-  BIG_SHEET_DESC: 'When enabled, it can solve the issue of Obsidian indexing failure caused by large files, but it will affect search functionality and automatic updates of external links. <a href="https://github.com/ljcoder2015/obsidian-sheet-plus/wiki/What-is-Big-Sheet%3F">More Details</a>',
+  BIG_SHEET_DESC: 'When enabled, it can solve the issue of Obsidian indexing failure caused by large files, but it will affect search functionality and automatic updates of external links. More Details',
 
   IMPORTING: 'Importing...',
   EXPORTING: 'Exporting...',
   EXPORTED: 'Exported',
+  IMPORT_XLSX: 'Import xlsx',
+  IMPORT_CSV: 'Import csv',
+  EXPORT_XLSX: 'Export xlsx',
+  EXPORT_CSV: 'Export csv',
 
   FONT_FOLDER_NOT_FOUND: 'Font folder not found',
   FONT_FOLDER: 'Font folder',

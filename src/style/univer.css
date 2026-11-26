@@ -1,3 +1,4 @@
+/* Modified 2026-11-24 by janlewski for Vault Sheets. */
 :root {
 	--ctx_menu_x: 0px;
 	--ctx_menu_y: 0px;
@@ -19,9 +20,9 @@
   padding: 0;
 }
 
-.authorization-code-container {
-	text-align: center;
-	font-size: 20px;
+.vault-sheets-unavailable-view,
+.vault-sheets-chart-embed-notice {
+  padding: 12px 16px;
 }
 
 .lj-table-box {

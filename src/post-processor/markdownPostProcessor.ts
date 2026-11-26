@@ -1,7 +1,9 @@
 import type { MarkdownPostProcessorContext, MetadataCache, Vault } from 'obsidian'
 import { TFile } from 'obsidian'
 
-import { createEchartsEl, log } from '@ljcoder/smart-sheet'
+// Modified 2026-11-24 by janlewski for Vault Sheets.
+import { log } from '../utils/log'
+import { t } from '../lang/helpers'
 import { BooleanNumber } from '@univerjs/core'
 import type { IWorkbookData } from '@univerjs/core'
 import type ExcelProPlugin from '../main'
@@ -13,6 +15,13 @@ import { cellNeedsCalculation, cellText } from './cell-value'
 import { parseEmbedLinkSyntax } from './embed-syntax'
 import { renderToHtml } from './html'
 import { computeCellText, createUniverEl } from './univer'
+
+function unsupportedChartEmbed(): HTMLElement {
+  return createDiv({
+    cls: 'vault-sheets-chart-embed-notice',
+    text: t('CHART_EMBED_UNSUPPORTED'),
+  })
+}
 
 let plugin: ExcelProPlugin
 let vault: Vault
@@ -175,8 +184,7 @@ async function reRenderEmbeddedContent(file: TFile) {
       }
     }
     else if (displayType.includes('chart')) {
-      const chartsEl = createEchartsEl(plugin.settings.darkModal === 'dark', excelData, sheetName, range, displayType, undefined)
-      el.appendChild(chartsEl)
+      el.appendChild(unsupportedChartEmbed())
     }
   }
 }
@@ -461,8 +469,7 @@ async function createEmbedLinkDiv(src: string, alt: string, file: TFile, data: s
     contentWrapper.setAttr('data-sheet-name', parseResult.sheetName)
     contentWrapper.setAttr('data-range', `${parseResult.startCell}:${parseResult.endCell}`)
     contentWrapper.setAttr('data-display-type', parseResult.displayType)
-    const chartsEl = createEchartsEl(plugin.settings.darkModal === 'dark', excelData, parseResult.sheetName, `${parseResult.startCell}:${parseResult.endCell}`, parseResult.displayType, parseResult.height)
-    contentWrapper.appendChild(chartsEl)
+    contentWrapper.appendChild(unsupportedChartEmbed())
     embedLinkDiv.appendChild(contentWrapper)
     return embedLinkDiv
   }

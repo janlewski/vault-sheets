@@ -6,7 +6,9 @@ import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import { univerPlugin } from '@univerjs/vite-plugin'
 
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import pkg from './package.json'
+import manifest from './manifest.json'
 
 let buildDir = process.env.DIST_DIR ?? 'dist'
 
@@ -100,37 +102,20 @@ function generate(isDev?: boolean) {
   if (!isDev)
     buildDir = 'dist'
 
-  const cwd = process.cwd()
-
-  // 去掉末尾两级目录
-  const parentDir = dirname(dirname(cwd))
   return {
     name: 'obsidian',
     async writeBundle() {
       await writeFile(resolve(buildDir, MANIFEST_JSON), `${JSON.stringify({
         id: pkg.name,
-        name: 'Sheet Plus',
+        name: manifest.name,
         version: pkg.version,
-        minAppVersion: '1.13.0',
+        minAppVersion: manifest.minAppVersion,
         description: pkg.description,
         author: pkg.author,
-        authorUrl: 'https://github.com/ljcoder2015',
-        fundingUrl: 'https://ko-fi.com/ljcoder',
-        isDesktopOnly: false,
+        authorUrl: manifest.authorUrl,
+        isDesktopOnly: manifest.isDesktopOnly,
       }, null, 2)}
 `)
-      // 这两句写的是构建目录以外的位置，不属于产物本身，失败时不应该让整个 build 挂掉：
-      // 尤其 copy 到 parentDir 那句，一旦父目录不可写（例如在 /tmp 之类的布局下），
-      // 抛出会中断 writeBundle，后面的样式重命名就不会再执行。
-      // 两句分别兜底，避免一句失败把另一句（写回本仓库根目录的那份）也带着跳过。
-      try {
-        await copyFile(resolve(buildDir, MANIFEST_JSON), join(parentDir, MANIFEST_JSON))
-        // eslint-disable-next-line no-console
-        console.log(`Copied ${MANIFEST_JSON} to parent directory`)
-      }
-      catch (error) {
-        console.error(`Error copying ${MANIFEST_JSON} to parent directory:`, error)
-      }
       try {
         await copyFile(resolve(buildDir, MANIFEST_JSON), join(process.cwd(), MANIFEST_JSON))
         // eslint-disable-next-line no-console
@@ -153,27 +138,9 @@ function generate(isDev?: boolean) {
       // eslint-disable-next-line no-console
       console.log('build!')
     },
-    async closeBundle() {
-      // eslint-disable-next-line no-console
-      console.log('[-------------]: closeBundle', parentDir, process.cwd())
-      const stylesCssPath = resolve(buildDir, STYLES_CSS)
-      const mainJsPath = resolve(buildDir, MAIN_JS)
-      try {
-        await copyFile(stylesCssPath, join(parentDir, STYLES_CSS))
-        // eslint-disable-next-line no-console
-        console.log(`Copied ${STYLES_CSS} to parent directory`)
-      }
-      catch (error) {
-        console.error(`Error copying ${STYLES_CSS}:`, error)
-      }
-      try {
-        await copyFile(mainJsPath, join(parentDir, MAIN_JS))
-        // eslint-disable-next-line no-console
-        console.log(`Copied ${MAIN_JS} to parent directory`)
-      }
-      catch (error) {
-        console.error(`Error copying ${MAIN_JS}:`, error)
-      }
+    closeBundle() {
+      // Artifacts stay in dist/ and the repo-root manifest. The old monorepo
+      // parent directory is not a plugin folder in this repository.
     },
   }
 }
@@ -214,8 +181,8 @@ export default defineConfig((_) => {
         entry: './src/main.ts',
         name: 'main',
         fileName: () => MAIN_JS,
-        // Vite 6 起库模式默认用包名作为 CSS 产物名（sheet-plus.css），
-        // 这里显式指回 style.css，后面的重命名为 styles.css 的逻辑才继续有效。
+        // Library mode names the CSS file after the package. Pin style.css so the
+        // later rename to styles.css still runs.
         cssFileName: 'style',
         formats: [
           'cjs',

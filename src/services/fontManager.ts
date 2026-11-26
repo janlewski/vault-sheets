@@ -1,4 +1,5 @@
-import { error } from '@ljcoder/smart-sheet/src/utils/log'
+// Modified 2026-11-24 by janlewski for Vault Sheets.
+import { error } from '../utils/log'
 import type { App } from 'obsidian'
 
 export interface FontInfo {

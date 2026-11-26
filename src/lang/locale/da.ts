@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // Dansk
 
 export default {
@@ -63,12 +64,6 @@ export default {
   NUMBER_FORMAT_LOCALE: 'Sifferformateringsområdeindstillinger',
   NUMBER_FORMAT_LOCALE_DESC: 'Indstil område for sifferformatering',
 
-  AUTHORIZATION_CODE: 'Aktiveringskode',
-  AUTHORIZATION_CODE_GET: 'Hent aktiveringskode',
-  AUTHORIZATION_CODE_DESC: 'Indtast aktiveringskoden for at aktivere avancerede funktioner',
-  AUTHORIZATION_CODE_SUBMIT: 'Indsend',
-  AUTHORIZATION_CODE_SUCCESS: 'Aktivitet lykkedes',
-  AUTHORIZATION_CODE_FAILED: 'Aktivering mislykkedes. Tjek venligst, om aktiveringskoden er korrekt',
 
   COMMAND_LINK_UNIVER: 'Generér indlejrede links til regneark',
   COMMAND_LINK_HTML: 'Generér indlejrede HTML-links',

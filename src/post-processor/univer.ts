@@ -1,6 +1,7 @@
 import type { INumfmtLocaleTag, IWorkbookData } from '@univerjs/core'
 import type { Univer } from '@univerjs/core'
-import { log, warn } from '@ljcoder/smart-sheet/src/utils/log'
+// Modified 2026-11-24 by janlewski for Vault Sheets.
+import { log, warn } from '../utils/log'
 import type { FUniver } from '@univerjs/core/facade'
 import type { FWorksheet } from '@univerjs/sheets/facade'
 import { randomString } from '../utils/uuid'

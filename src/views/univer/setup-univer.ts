@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 import '@ljcoder/sheets-outgoing-link-ui/lib/style.css'
 
 import { IAuthzIoService, LocaleType, LogLevel, Univer, UserManagerService } from '@univerjs/core'
@@ -79,12 +80,12 @@ import { UniverSheetsEmbedLinkUIPlugin } from '@ljcoder/embed-link-ui'
 import { UniverSheetsSortUIPlugin } from '@univerjs/sheets-sort-ui'
 import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair-highlight'
 import { UniverChartPlugin } from '@ljcoder/charts'
-import { UniverSheetsImportExportPlugin } from '@ljcoder/import-export'
 import { UniverSheetsOutgoingLinkUIPlugin } from '@ljcoder/sheets-outgoing-link-ui'
 import { FUniver } from '@univerjs/core/facade'
-import { log } from '@ljcoder/smart-sheet/src/utils/log'
+import { log } from '../../utils/log'
 import { SavePlugin } from '@ljcoder/save'
 import { UniverLocalImagePlugin } from '@ljcoder/local-image'
+import { VaultSheetsExchangePlugin } from '../../import-export/plugin'
 import { enUS, faIR, frFR, getLanguage, jaJP, ruRU, viVN, zhCN, zhTW } from '../../lang/locale'
 import { type FontInfo, buildFontConfigs } from '../../services/fontManager'
 import { LJAuthzService } from './mockUserService'
@@ -262,8 +263,7 @@ function registerDesktopPlugin(univer: Univer, option: IUniverUIConfig, containe
   // 图表
   univer.registerPlugin(UniverChartPlugin)
 
-  // 导入导出
-  univer.registerPlugin(UniverSheetsImportExportPlugin)
+  univer.registerPlugin(VaultSheetsExchangePlugin)
 
   // 外链
   // univer.registerPlugin(UniverSheetsOutgoingLinkPlugin)

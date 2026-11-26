@@ -27,8 +27,8 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. Windows, MacOS, iOS]
  - Version [e.g. 22]
 
-**Sheet Plus Plugin (please complete the following information):**
- - Version [e.g. 22]
+**Vault Sheets (please complete the following information):**
+ - Version [e.g. 0.1.0]
 
 **Additional context**
 Add any other context about the problem here.

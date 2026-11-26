@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // العربية
 
 export default {
@@ -63,12 +64,6 @@ export default {
   MOBILE_RENDER_MODE: 'وضع عرض الهاتف المحمول',
   MOBILE_RENDER_MODE_DESC: 'وضع عرض الهاتف المحمول، اختر "mobile" لعرض نمط الهاتف المحمول و "desktop" لعرض نمط العميل',
 
-  AUTHORIZATION_CODE: 'رمز المصادقة',
-  AUTHORIZATION_CODE_GET: 'احصل على رمز المصادقة',
-  AUTHORIZATION_CODE_DESC: 'أدخل رمز المصادقة لتفعيل الميزات المتقدمة',
-  AUTHORIZATION_CODE_SUBMIT: 'إرسال',
-  AUTHORIZATION_CODE_SUCCESS: 'تم التفعيل بنجاح',
-  AUTHORIZATION_CODE_FAILED: 'فشل التفعيل، يرجى التحقق من صحة رمز التفعيل',
 
   COMMAND_LINK_UNIVER: 'إنشاء رابط مضمن للجدول',
   COMMAND_LINK_HTML: 'إنشاء رابط مضمن لـ HTML',

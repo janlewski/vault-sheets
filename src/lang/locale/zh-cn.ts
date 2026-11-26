@@ -1,3 +1,4 @@
+// Modified 2026-11-24 by janlewski for Vault Sheets.
 // 简体中文
 export default {
   // Main.ts
@@ -81,12 +82,6 @@ export default {
   DEFAULT_FONT_FAMILY_DESC: '单元格内容的默认字体，重新打开表格后生效；已单独设置字体的单元格不受影响',
   DEFAULT_FONT_FAMILY_NONE: '默认',
 
-  AUTHORIZATION_CODE: '授权码',
-  AUTHORIZATION_CODE_GET: '获取授权码',
-  AUTHORIZATION_CODE_DESC: '输入授权码，激活高级功能',
-  AUTHORIZATION_CODE_SUBMIT: '提交',
-  AUTHORIZATION_CODE_SUCCESS: '激活成功',
-  AUTHORIZATION_CODE_FAILED: '激活失败，请检查激活码是否正确',
 
   COMMAND_LINK_UNIVER: '生成 表格 嵌入链接',
   COMMAND_LINK_HTML: '生成 HTML 嵌入链接',
@@ -135,7 +130,7 @@ export default {
   SAVE_IS_TAKING_VERY_LONG: '为了更好的性能，请考虑将文件拆分成几个较小的文件。',
 
   BIG_SHEET: '大表格',
-  BIG_SHEET_DESC: '开启后，可以解决大文件导致 Obsdian 索引失败的问题，但是会影响搜索功能，自动更新外链功能. <a href="https://github.com/ljcoder2015/obsidian-sheet-plus/wiki/What-is-Big-Sheet%3F">更多说明</a>',
+  BIG_SHEET_DESC: '开启后，可以解决大文件导致 Obsdian 索引失败的问题，但是会影响搜索功能，自动更新外链功能. 更多说明',
 
   IMPORTING: '导入中...',
   EXPORTING: '导出中...',
